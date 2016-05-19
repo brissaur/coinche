@@ -14,7 +14,7 @@ var app = express();
 
 app.get('/', routes.index);
 // Page Route
-app.get('/page/:page/:skip', routes.page);
+app.get('/:page', routes.page);
 
 
 var server = http.createServer(app).listen(3000, function() {
@@ -23,3 +23,4 @@ var server = http.createServer(app).listen(3000, function() {
 
 // Initialize socket.io
 var io = require('socket.io').listen(server);
+var universe = require('./modules/universe')(io);

@@ -1,5 +1,5 @@
 module.exports = {
-	32cardsDeck: [
+	_32cardsDeck: [
 		{value: '7',color: 'H'},
 		{value: '8',color: 'H'},
 		{value: '9',color: 'H'},

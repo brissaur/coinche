@@ -1,4 +1,5 @@
-var dataSampleForCards = require('dataSampleForDecks');
+var dataSampleForCards = require('./dataSampleForDecks'),
+	Card = require('./card');
 /*
 * 
 *
