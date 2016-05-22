@@ -1,4 +1,4 @@
-var auth = require('./modules/authentification');
+// var auth = require('./modules/authentification');
 // ==============================================================
 // ================== GLOBAL VAR ==================================
 // ==============================================================
@@ -30,6 +30,20 @@ module.exports = function(app, passport){
 		req.logout();
 		res.redirect('/');
 	});
+    app.get('/auth/facebook', passport.authenticate('facebook', { scope : 'email' }));
+
+    // handle the callback after facebook has authenticated the user
+    // app.get('/auth/facebook/callback',function(req, res){
+    // 	console.log(req);
+    // 	console.log(res);
+    // });
+
+    app.get('/auth/facebook/callback',
+        passport.authenticate('facebook', {
+            successRedirect : '/profile',
+            failureRedirect : '/'
+        }
+    ));
 
 
 
@@ -41,21 +55,3 @@ module.exports = function(app, passport){
 	}
 
 }
-
-
-// module.exports = {
-// 	index: function(req, res){
-// 		res.render('index.jade',
-// 		{
-// 			name: "robin"
-// 		});
-// 	},
-// 	routes: function(req, res){
-// 		console.log(req.params.route);
-// 		res.render('login.jade');
-// 	},
-// 	page: function(req, res){
-// 		// res.render('');
-
-// 	}
-// }

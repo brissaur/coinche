@@ -1,6 +1,6 @@
 var express 	 = require('express'),
 	config 		 = require('./config/config'),
-	// http 		 = require('http'),
+	http 		 = require('http'),
 	routes 		 = require('./routes'),
 	log 		 = require('./modules/log'),
 	mongoose 	 = require('mongoose'),
@@ -29,12 +29,12 @@ var app = express();
 //routes
 require('./routes.js')(app, passport); 
 
-app.listen(config.express.port, function(){
-	console.log('The magic happens on port ' + config.express.port);
-});
-// var server = http.Server(app).listen(config.port, function() {
-//   log('INFO','Express server listening on port ' + config.port);
+// app.listen(config.express.port, function(){
+// 	console.log('The magic happens on port ' + config.express.port);
 // });
+var server = http.Server(app).listen(config.express.port, function() {
+  log('INFO','Express server listening on port ' + config.express.port);
+});
 
 // Initialize socket.io
 // var io = require('socket.io').listen(server);

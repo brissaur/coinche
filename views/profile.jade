@@ -15,16 +15,34 @@ html
       .row
         // LOCAL INFORMATION
         .col-sm-6
-          .well
-            h3
-              span.fa.fa-user
-              |  Local
-            p
-              strong id
-              | : #{user._id}
-              br
-              strong email
-              | :  #{user.local.email}
-              br
-              strong password
-              | :  #{user.local.password}
+          if user.local.password
+            .well
+              h3
+                span.fa.fa-user
+                |  Local
+              p
+                strong id
+                | : #{user._id}
+                br
+                strong email
+                | :  #{user.local.email}
+                br
+                strong password
+                | :  #{user.local.password}
+          if user.facebook.token
+            .well
+              h3
+                span.fa.fa-user
+                |  Facebook
+              p
+                strong id
+                | : #{user._id}
+                br
+                strong name
+                | :  #{user.facebook.name}
+                br
+                strong email
+                | :  #{user.facebook.email}
+                br
+                strong token
+                | :  #{user.facebook.token }
