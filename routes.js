@@ -12,7 +12,7 @@ module.exports = function(app, passport){
 		res.render('login',{ message: req.flash('loginMessage') });
 	});
     app.post('/login', passport.authenticate('local-login', {
-        successRedirect : '/profile', // redirect to the secure profile section
+        successRedirect : '/home', // redirect to the secure home section
         failureRedirect : '/login', // redirect back to the signup page if there is an error
         failureFlash : true // allow flash messages
     }));
@@ -20,13 +20,13 @@ module.exports = function(app, passport){
 		res.render('signup',{ message: req.flash('signupMessage') });
 	});
 	app.post('/signup', passport.authenticate('local-signup', {
-        successRedirect : '/profile', // redirect to the secure profile section
+        successRedirect : '/home', // redirect to the secure home section
         failureRedirect : '/signup', // redirect back to the signup page if there is an error
         failureFlash : true // allow flash messages
     }));
-	app.get('/profile', isLoggedIn, function(req,res){
+	app.get('/home', isLoggedIn, function(req,res){
 		// console.log(req);
-		res.render('profile', {user: req.user});
+		res.render('app', {user: req.user});
 	});
 	app.get('/logout', function(req,res){
 		req.logout();
@@ -44,7 +44,7 @@ module.exports = function(app, passport){
 
     app.get('/auth/facebook/callback',
         passport.authenticate('facebook', {
-            successRedirect : '/profile',
+            successRedirect : '/home',
             failureRedirect : '/'
         }
     ));
