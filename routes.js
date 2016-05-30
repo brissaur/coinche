@@ -5,6 +5,7 @@
 module.exports = function(app, passport){
 
 	app.get('/', function(req,res){
+		console.log('!!!!');
 		res.render('index');
 	});
 	app.get('/login', function(req,res){
@@ -24,6 +25,7 @@ module.exports = function(app, passport){
         failureFlash : true // allow flash messages
     }));
 	app.get('/profile', isLoggedIn, function(req,res){
+		// console.log(req);
 		res.render('profile', {user: req.user});
 	});
 	app.get('/logout', function(req,res){
@@ -31,7 +33,9 @@ module.exports = function(app, passport){
 		res.redirect('/');
 	});
     app.get('/auth/facebook', passport.authenticate('facebook', { scope : 'email' }));
-
+    app.post('/auth/socket',isLoggedIn, function(){
+    	
+    });
     // handle the callback after facebook has authenticated the user
     // app.get('/auth/facebook/callback',function(req, res){
     // 	console.log(req);
