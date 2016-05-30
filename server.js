@@ -1,3 +1,4 @@
+//TEST
 var express 	 = require('express'),
 	config 		 = require('./config/config'),
 	http 		 = require('http'),
@@ -37,5 +38,5 @@ var server = http.Server(app).listen(config.express.port, function() {
 });
 
 // Initialize socket.io
-// var io = require('socket.io').listen(server);
-// var universe = require('./modules/universe')(io);
+var io = require('socket.io').listen(server);
+var universe = require('./modules/universe')(io);
