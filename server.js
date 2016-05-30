@@ -1,3 +1,4 @@
+//TEST
 var express 	 = require('express'),
 	config 		 = require('./config/config'),
 	http 		 = require('http'),
@@ -54,4 +55,9 @@ server.listen(config.express.port, function() {
   log('INFO','Express server listening on port ' + config.express.port);
 });
 // Initialize socket.io
+<<<<<<< HEAD
 // var universe = require('./modules/universe')(io);
+=======
+var io = require('socket.io').listen(server);
+var universe = require('./modules/universe')(io);
+>>>>>>> 59532627d52a0dd1fa1d62a06156ee92dfd9c5c7

@@ -3,5 +3,11 @@ module.exports = function(name, socketid){
 		name: name,
 		socketid: socketid,
 		roomid: null,
+		status: 'AVAILABLE',
+
+		updateStatus: function(status, io){
+			this.status = status;
+			io.to('roomid').emit('updateStatus', {from: this.name, status: status});
+		}
 	}
 }

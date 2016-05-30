@@ -4,66 +4,118 @@ var Room = require('./room'),
 	log = require('./log');
 
 module.exports = function (io) {
-	chat = chat(io);
-
 	var connectedPlayers = [];
-		//players in the welcome screen
-	var welcome = [];
-		//players who joined a room
-	var rooms = [];
+	// var welcome = []; //players
+	var rooms = []; //rooms
 
-	/*
-	* messge = {from:"", to:[""]}
-	*/
 	io.on('connection', function(socket){
-		console.log(socket.request.session);
-		log('DEBUG', 'new connection');
-		socket.on('authentification',function(data){
-			// data={}
-			console.log('auth');
-			console.log(connectedPlayers);
-			assert(!(connectedPlayers[data.name]));
-			// connectedPlayers[socket.id] = new Player(data.name, socket.id);
-			connectedPlayers[data.name] = new Player(data.name, socket.id);
-			log('DEBUG', data.name +' connected on socket ' + socket.id);
-			welcome[socket.id] = socket.id;
-			socket.emit('ack_auth');
+		var pName = 'robin'; //todo //=socket.request.session
+		assert(!connectedPlayers[pName]);
+		connectedPlayers[pName] = new Player(pName, socket.id);
+		socket.emit('hello', {name: pName});
+		io.on('disconnect', function(){
+			connectedPlayers[pName].status = 'DISCONNECTING';
+			// if(connectedPlayers[pName].roomid)
+			// 	rooms[roomid].players[pName].socketid=null;
+			//broadcast to room
+			//broadcast to friends
+
+			connectedPlayers[pName].socketid = null;//question:faut-il free les objets?
 		});
-		// var cookie = cookie.parse(socket.handshake.headers.cookie);
-		// console.log({socket: socket.client.request});
-		// console.log(socket.id);
-		socket.emit('hello',{name:'robin'});
-			//treat new connection
-		// log('debug', connectedPlayers[socket.id]);
-			//treat disconnection
-		socket.on('disconnect', function(){
-			// log('debug', 'disconnection ' + socket.id);
-			// assert(connectedPlayers[socket.id]);
-			// delete connectedPlayers[socket.id];
-		});	
+		//CHAT MSG HANDLER
+		io.on('whisper', function(data){
+			assert(data.to); //name
+			assert(connectedPlayers[data.to]);
+			assert(data.msg);
+    		io.to(connectedPlayers[data.to].socketid).emit('chat',{from: pName, data: data.msg});
+		});
+		//GAME PREPARATION HANDLER
+		socket.on('newRoom',function(data){ //optional 'to':players to be invited
+			assert(connectedPlayers[pName].status == 'AVAILABLE');
+			connectedPlayers[pName].status == 'INROOM';
 
+			var newRoom = new Room(pName, io, connectedPlayers, rooms, socket);//create new room
+			rooms[newRoom.id] = newRoom;
+			connectedPlayers[pName].roomid = newRoom.id;
 
-		//treat other messages
-			//room-related
-		socket.on('room', function(msg){//msg=
-			assert(connectedPlayers[socket.id].roomid);
+			//invite players if any
+			invitePlayers(pName, data.to);
+		});
+		socket.on('roomInvitation', function(data){
+			invitePlayers(pName, data.to);
+		});
+		socket.on('acceptInvite', function(data){
+			var roomid = connectedPlayers[pName].roomid;
+			assert(roomid);
+			rooms[roomid].play(pName,data.accept, socket);
+		});
+		socket.on('leaveRoom', function(data){
+			var roomid = connectedPlayers[pName].roomid;
+			assert(roomid);
+			rooms[roomid].leaveRoom(pName, socket);
+		});
+		socket.on('kick', function(data){
+			var roomid = connectedPlayers[pName].roomid;
+			assert(roomid);
+			assert(data.to);
+			rooms[roomid].kick(pName, data.to, socket);
+		});
+		socket.on('swap', function(data){
+			var roomid = connectedPlayers[pName].roomid;
+			assert(roomid);
+			assert(data.to);
+			rooms[roomid].swap(pName,data.to);
+		});
+		socket.on('startGame', function(data){
+			var roomid = connectedPlayers[pName].roomid;
+			assert(roomid);
+			rooms[roomid].startGame(pName);
+		});
+		socket.on('chat', function(data){
+			var roomid = connectedPlayers[pName].roomid;
+			assert(roomid);
+			assert(data.msg);
+			rooms[roomid].chat(pName,data.msg);
+		});
+		socket.on('announce', function(data){
+			var roomid = connectedPlayers[pName].roomid;
+			assert(roomid);
+			assert(data.announce);
+			rooms[roomid].announce(pName,data.announce);
+		});
+		socket.on('coinche', function(data){
+			var roomid = connectedPlayers[pName].roomid;
+			assert(roomid);
+			assert(data.announce);
+			rooms[roomid].coinche(pName,data.announce);
+		});
+		socket.on('play', function(data){
+			var roomid = connectedPlayers[pName].roomid;
+			assert(roomid);
+			assert(data.card);
+			rooms[roomid].play(pName,data.card);
 		});
 
-			//game-related
-		socket.on('game', function(msg){
-			assert(connectedPlayers[socket.id].roomid);
-		});
+		// for (var i = 0; i < roomEvents.length; i++) {
+		// 	(function(eventName, playerid) {
+		//          socket.on(eventName, function(data) {
+		//             rooms[connectedPlayers[playerid]].event({data: data, from: playerid});
+		//          }); 
+		//     })(roomEvents[i], pName);
+		// }
 
-		var PLAYERID = 'ROBIN';//ARCHI: DECIDE WHAT THAT IS
-		var roomEvents = ['first_event', 'second_event', 'third_event'];
-		for (var i = 0; i < roomEvents.length; i++) {
-			(function(eventName, playerid) {
-		         socket.on(eventName, function(data) {
-		            rooms[connectedPlayers[PLAYERID]].event({eventData: data, from: PLAYERID},function(from,to,event,data){
-	            		io.to(to).emit(event,{from: from, data: data});
-		            });
-		         }); 
-		    })(roomEvents[i], PLAYERID);
+		function invitePlayers(from, to){
+			var roomid = connectedPlayers[from].roomid;
+			assert(roomid);
+			if(to){
+				for (var i = 0; i < to.length; i++) {
+					assert(connectedPlayers[to[i]]);
+					rooms[newRoom.id].invite(from, to);
+					// connectedPlayers[to[i]].status = 'INVITATION_PENDING';
+					// connectedPlayers[to[i]].roomid = newRoom.id;
+					// io.to(to[i]).emit('roomInvitation', {from: from});//question: if 3 persons, loop?
+				}
+			}
 		}
 	});
 	// io.on('invitation', function(message){
