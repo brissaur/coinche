@@ -461,5 +461,3 @@ module.exports = function(io, namespace, attendee, players) {
 // 			// new firstPlayer
 // 			// gather tricks to team
 // 			//io.emit
-
->>>>>>> 59532627d52a0dd1fa1d62a06156ee92dfd9c5c7
