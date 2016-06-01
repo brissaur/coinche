@@ -1,26 +1,34 @@
-var Game = require('./game');
-
+var Game 	= require('./game');
+var log    	= require('./log');
 module.exports = function(host, io, connectedPlayers, rooms, hostsocket) {
 	// var io=io;
 	// var connectedPlayers=
 	var generatedid;
 	do {
-		generatedid = random(0,100000000);
+		generatedid = Math.random(0,100000000);
 	} while (rooms[generatedid]);
 	hostsocket.join(generatedid);
+	var attendee = {};
+	attendee[host] = connectedPlayers[host];
 	return {
 		id: generatedid,// on following template! 'R' + int
 		//manage room socket
 		leader: host,
-		attendee: {}, //pointeur sur element de connectedPlayers
-		players: [],
+		attendee: attendee, //pointeur sur element de connectedPlayers
+		players: [host],
 		game: null,
 
-		invite: function(from,to){
+		invite: function(from,to){ //from=string, to=string
+			log('DEBUG', 'invitation from ' + from + ' to ' + to + '.');
 			assert(this.attendee[from]);
 			assert(from==this.leader);
-			assert(connectedPlayers[to[i]].status == 'AVAILABLE');
+			assert(connectedPlayers[to].status == 'AVAILABLE');
+			assert(!this.attendee[to]);
+
+			this.attendee[to]=connectedPlayers[to];
+			this.attendee[to].roomid=this.id;
 			this.attendee[to].updateStatus('INVITATION_PENDING', io);
+			io.to(this.attendee[to].socketid).emit('roomInvitation', {from:from});
 		},
 		acceptInvite: function(from, accept, socket){
 			assert(this.attendee[from]);
@@ -31,13 +39,14 @@ module.exports = function(host, io, connectedPlayers, rooms, hostsocket) {
 				socket.join(this.id);
 				this.attendee[from].roomid=null;
 
-				this.players.concat[from];//todo: probleme si plus de 4 joueurs
+				this.players.push(from);//todo: probleme si plus de 4 joueurs
 				//todo probleme si qqun leave
+				io.to(this.attendee[from].socketid).emit('joinRoom', {players: this.players});//send context
 			} else {
 				this.attendee[from].updateStatus('AVAILABLE', io);
-				io.to(from).emit('join',{from: from, accept:accept});
+				delete this.attendee[from];
 			}
-			io.to(this.id).emit('join',{from: from, accept:accept});
+				io.to(this.id).emit('join',{from: from, accept:accept});
 		},
 		leaveRoom: function(from, socket){
 			assert(this.attendee[from]);

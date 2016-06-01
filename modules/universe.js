@@ -32,6 +32,7 @@ module.exports = function (io) {
 						           
 								if (connectedPlayers[pName]){
 									connectedPlayers[pName].socketid = socket.id;
+									connectedPlayers[pName].status = 'AVAILABLE';
 								} else {
 									connectedPlayers[pName] = new Player(pName, socket.id);
 								}
@@ -64,25 +65,26 @@ module.exports = function (io) {
 						    		io.to(connectedPlayers[data.to].socketid).emit('chat',{from: pName, data: data.msg});
 								});
 								//GAME PREPARATION HANDLER
-								socket.on('newRoom',function(data){ //optional 'to':players to be invited
+								socket.on('newRoom',function(data){ //optional 'to':players to be invited  //OK
 									assert(connectedPlayers[pName].status == 'AVAILABLE');
 									connectedPlayers[pName].status == 'INROOM';
 
 									var newRoom = new Room(pName, io, connectedPlayers, rooms, socket);//create new room
 									rooms[newRoom.id] = newRoom;
 									connectedPlayers[pName].roomid = newRoom.id;
-
+									socket.emit('joinRoom',{});
 									//invite players if any
 									if (data.to)
 										invitePlayers(pName, data.to);
 								});
-								socket.on('roomInvitation', function(data){
+								socket.on('roomInvitation', function(data){  //OK ?? check
 									invitePlayers(pName, data.to);
 								});
-								socket.on('acceptInvite', function(data){
+								socket.on('acceptInvite', function(data){ //WIP
 									var roomid = connectedPlayers[pName].roomid;
 									assert(roomid);
-									rooms[roomid].play(pName,data.accept, socket);
+									assert(data.accept != null);
+									rooms[roomid].acceptInvite(pName,data.accept, socket);
 								});
 								socket.on('leaveRoom', function(data){
 									var roomid = connectedPlayers[pName].roomid;
@@ -147,10 +149,11 @@ module.exports = function (io) {
 		function invitePlayers(from, to){
 			var roomid = connectedPlayers[from].roomid;
 			assert(roomid);
+			//todo assert to is a table
 			if(to){
 				for (var i = 0; i < to.length; i++) {
 					assert(connectedPlayers[to[i]]);
-					rooms[newRoom.id].invite(from, to);
+					rooms[roomid].invite(from, to[i]);
 					// connectedPlayers[to[i]].status = 'INVITATION_PENDING';
 					// connectedPlayers[to[i]].roomid = newRoom.id;
 					// io.to(to[i]).emit('roomInvitation', {from: from});//question: if 3 persons, loop?

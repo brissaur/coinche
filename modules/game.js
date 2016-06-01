@@ -1,5 +1,6 @@
-var Deck = require('./deck');
-var Cards = require('./card').template();
+var Deck 	= require('./deck');
+var Cards 	= require('./card').template();
+var log    	= require('./log');
 module.exports = function(io, namespace, attendee, players) {
 	var attendees=[];
 	for (aName in attendee){

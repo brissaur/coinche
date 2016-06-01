@@ -2,7 +2,7 @@ var socket = io();
 
 var CoincheApp = React.createClass({
   getInitialState: function(){
-    return {players:[]}
+    return {players:[], settingUpBoard: true, playBoard: false}
   },
   componentDidMount: function() {
     var self=this;
@@ -16,13 +16,25 @@ var CoincheApp = React.createClass({
     // });
     // setTimeout(function() {
     socket.emit('userData', {msg: 'testmsg'});
+
+    socket.on('joinRoom', function(context){
+      console.log('received join room');
+      self.handleJoinRoom(context);
+      // this.setState({settingUpBoard: false, playBoard: true});
+    });
     // }, 2);
     // console.log('userData');
       
   },
+  handleJoinRoom: function(context){
+    this.setState({settingUpBoard: false, playBoard: true});
+  },
 	render: function(){
 		return (
-      <SettingUpBoard players={this.state.players}/>
+      <div>
+        <SettingUpBoard players={this.state.players} className={!this.state.settingUpBoard?'hidden':''}/>
+        <PlayBoard className={!this.state.playBoard?'hidden':''}/>
+      </div>
     );
   }
 });
@@ -41,6 +53,13 @@ var SettingUpBoard = React.createClass({
       // return {newGameBoard: true, newInvitationBoard: false, newInvitationFrom: ''};
       return {newGameBoard: true, newInvitationBoard: false, newInvitationFrom: ''};
     },
+    componentDidMount: function() {
+      var self=this;
+      socket.on('roomInvitation', function(data){
+        console.log('roomInvitation from ' + data.from);
+        self.setState({newGameBoard: false, newInvitationBoard: true, newInvitationFrom:data.from});
+      });
+    },
     eventNewInvitationFrom: function(pName){//event
       this.setState({newGameBoard: false, newInvitationBoard: true, newInvitationFrom: pName});
     },
@@ -49,9 +68,11 @@ var SettingUpBoard = React.createClass({
       if (action=='accept'){
         this.setState({newInvitationBoard: false, newInvitationFrom: ''});
       //   //send message
+        socket.emit('acceptInvite',{accept: true});
       //   this.handleJoinRoom();
       } else if (action=='refuse'){
         this.setState({newGameBoard: true, newInvitationBoard: false, newInvitationFrom: ''});
+        socket.emit('acceptInvite',{accept: false});
       //   //send message
 
       } else {
@@ -60,12 +81,16 @@ var SettingUpBoard = React.createClass({
     },
     handleJoinRoom: function(){
       this.setState({newInvitationBoard: false, newInvitationFrom: ''});
-        //TODO: et la ??
+      //now: doit on remotne l'info, soit on a un lsiten qui nous envoit les infos
+    },
+    handleNewRoom: function(){
+      //now: doit on remotne l'info, soit on a un lsiten qui nous envoit les infos
+
     },
     render: function(){
       return (
-        <div>
-          <NewGameBoard handleJoinRoom={this.handleJoinRoom} players={this.props.players} className={!this.state.newGameBoard?'hidden':''}/>
+        <div className={this.props.className}>
+          <NewGameBoard handleJoinRoom={this.handleJoinRoom}  players={this.props.players} newRoom={this.handleNewRoom} className={!this.state.newGameBoard?'hidden':''}/>
           <NewInvitationBoard playerNameWhoInvitedYou={this.state.newInvitationFrom} className={!this.state.newInvitationBoard?'hidden':''} handleNewInvitation={this.handleNewInvitation}/>
         </div>
      )
@@ -116,21 +141,39 @@ var NewInvitationBoard = React.createClass({
     },
     handleFriendInvitation(){
         //send invite message (this.state.playersToInvite)
-        // socket.emit('newRoom', {to:['a']});
-        this.setState({inviteFriendsBoard:false});
+        socket.emit('newRoom', {to:this.state.playersToInvite});
+        this.setState({inviteFriendsBoard:false, playersToInvite:[]});
     },
     cancelFriendInvitation(){
         this.setState({inviteFriendsBoard:false, newGame: false, inviteFriends: true, leaveRoom: true, launchGame: true});
     },
+    // handleSelectFriend: function() {
+    //   alert('handleSelectFriend');
+    //   // this.setState({newGame: false, inviteFriends: true, leaveRoom: true, launchGame: true});
+    // },
+    handleSelectFriend: function(name){
+        // alert(name);
+        var friendsSelected = this.state.playersToInvite;
+        var targetIndex= friendsSelected.indexOf(name);
+        if (targetIndex == -1){
+          friendsSelected.push(name);
+        } else {
+          friendsSelected.splice(targetIndex, 1)
+        }
+        this.setState({playersToInvite:friendsSelected});
+        // console.log(this.state.playersToInvite);
+    },
     render: function(){//TODO: manage player selection for invitation
       console.log({'this.prop.player': this.props.players});
+      var self=this;
       var players = this.props.players.map(function(player, i) {
         return (
-          <li key={i}> <a>{player.name}</a></li>
+          <li key={i}> <a value={player.name} onClick={self.handleSelectFriend.bind(self, player.name)} >{player.name}</a></li>
         );
-          // InvitablePlayer
       });
-      console.log({players:players});
+      // console.log({players:players});
+          // <button value='name' type='button' onClick={alert('jose')} >name</button>
+          // <button id="pute" className={!this.state.newGame?'hidden':''}  type='button' onClick={this.handleSelectFriend}> Name </button> 
       return (
         <div className={this.props.className}>
           <button id="newGameButton" className={!this.state.newGame?'hidden':''} type='button' onClick={this.handleNewGame}> New Game </button> 
@@ -148,15 +191,19 @@ var NewInvitationBoard = React.createClass({
      )
     }
   });
-var InvitablePlayer = React.createClass({
-  render: function(){
-    return(
-      <div></div>
-    )
-  }
-});
-
-// var PlayBoard = React.createClass({
+// var InvitablePlayer = React.createClass({
+//   render: function(){
+//     return(
+//       <div></div>
+//     )
+//   }
+// });
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+////////////////////// PLAY BOARD/////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+var PlayBoard = React.createClass({
 //   //props:
 //   //state: players[0...3]
 //   getInitialState: function(){
@@ -171,22 +218,23 @@ var InvitablePlayer = React.createClass({
 //   handleAnnounce: function(){
 //     alert('announce');
 //   },
-//   render: function(){
+  render: function(){
 //     var PlayersSpace = this.state.players.map(function(player) {
 //       return (
 //         <PlayerSpace playerSpace={player}/>
 //       );
 //     });
-//     return(
-//       <div>
-//         <AnnounceBoard currentAnnounce={this.state.currentAnnounce} handleAnnounce={this.handleAnnounce}/>
-//         <Tapis cards={this.state.playedCards}/>
-//         {PlayersSpace}
-//         <MySpace cards={this.state.cards}/>
-//       </div>
-//     )
-//   }
-// });
+    return(
+      <div className={this.props.className}>
+        <h1> You are on the PlayBoard </h1>
+      </div>
+        // <AnnounceBoard currentAnnounce={this.state.currentAnnounce} handleAnnounce={this.handleAnnounce}/>
+        // <Tapis cards={this.state.playedCards}/>
+        // {PlayersSpace}
+        // <MySpace cards={this.state.cards}/>
+    )
+  }
+});
 // var PlayerSpace = React.createClass({
 //   render: function(){
 //     return (
