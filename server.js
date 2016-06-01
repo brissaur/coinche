@@ -18,7 +18,6 @@ require('./config/passport')(passport);
 var app = express();
 var server = http.Server(app);
 var io = require('socket.io').listen(server);
-
 	app.use(express.static(__dirname));// Set /public as our static content dir
   	app.set('view engine', 'jade');
 	app.use(morgan('dev')); // log every request to the console

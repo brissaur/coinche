@@ -26,7 +26,7 @@ module.exports = function(app, passport){
     }));
 	app.get('/home', isLoggedIn, function(req,res){
 		// console.log(req);
-		res.render('app', {user: req.user});
+		res.render('reactApp', {user: req.user});
 	});
 	app.get('/logout', function(req,res){
 		req.logout();

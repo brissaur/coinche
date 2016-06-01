@@ -1,0 +1,18 @@
+extends template
+block css
+	//- link(rel='stylesheet', type='text/css', href='/public/css/common.css')
+	link(rel='stylesheet', type='text/css', href='/public/css/helloworld.css')
+block content
+	div#topContainer
+	div#content
+block scripts
+	script(src='/public/js/react.js')
+	script(src='/public/js/react-dom.js')
+	script(src='/public/js/browser.min.js')
+	script(src='/node_modules/socket.io/node_modules/socket.io-client/socket.io.js')
+	script(type='text/babel',src='/public/react/reactApp.js')
+	//- script(type='text/babel').
+		ReactDOM.render(
+		  <CoincheApp />,
+		  document.getElementById('topContainer')
+		);

@@ -1,0 +1,13 @@
+.hidden{
+	display: none;
+}
+div{
+	border: solid thin;
+}
+.card{
+	width:6%;
+	height:6%;
+}
+.cardToBePlayed{
+
+}

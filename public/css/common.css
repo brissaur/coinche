@@ -1,0 +1,219 @@
+/*******************************/
+/************GLOBAL**************/
+/*******************************/
+body{
+      min-width: 768px ;
+      background-color: black;
+      min-height: 300px;
+}
+button{
+      color:black;
+}
+li {
+      list-style-type: none;
+}
+
+/*******************************/
+/************BOARD**************/
+/*******************************/
+#board{
+      position: relative;
+      background-color:green;
+      /*height: 300px;*/
+      min-height: 300px;
+      height:60%;
+      max-height: 500px;
+
+}
+#announceBoard{
+
+}
+.announceButton:hover, .announceButton.selected{
+      background-color: blue;
+      color: white;
+}
+/************SCORES**************/
+#scores{
+      position: absolute;
+      top:0;
+      right:0;
+      margin-top: 10px;
+      margin-right: 10px;
+}
+tr, td, th{
+      border: solid thin;
+}
+td:first-child{
+      text-align: right;
+      font-weight: bold;
+      width: 110px;
+      /*color: blue;*/
+}
+th{
+      font-weight: bold;
+      text-align: center;
+}
+td{
+      width: 50px;
+      text-align: center;
+}
+#currentAnnounce{
+      position: absolute;
+      color:white;
+      background-color: black;
+      margin-left: 10px;
+      margin-top: 10px;
+}
+/************PLAYERS**************/
+#playarea{
+      height: 200px;
+}
+.player, .player img{
+      position: absolute;
+}
+.playerName{
+      background-color: white;
+      text-align: center;
+      border-radius: 3px;
+}
+#topPlayer{
+      left:45%;
+}
+#topPlayer img{
+
+}
+#leftPlayer{
+      left:0;
+      top:45%;
+}
+#leftPlayer img{
+      left: 100px;
+      top:-30px;
+}
+#rightPlayer{
+      right:0;
+      top:45%;
+}
+#rightPlayer img{
+      right: 100px;
+      top:-30px;
+}
+#bottomPlayer{
+      bottom:0;
+      left:45%;
+}
+#bottomPlayer img{
+      bottom: 40px;
+}
+.player span{
+      display: block;
+}
+.announce, .belote {
+      border-radius: 4px;
+      background-color: lightgrey;
+      padding-right: 10px;
+      padding-left: 10px;
+}
+.player img, #playerCards img{
+      height: 88px;
+      width: 66px;
+}
+.dealer{
+      display:inline-block;
+      color: white;
+      background-color: red;
+      border-radius: 10px;
+      text-align: center;
+}
+#playerCards{
+      min-height: 100px;
+      height: 20%;
+      max-height: 200px;
+      background-color: green;
+      text-align: center;
+}
+.playedCard{
+      height: 150px;
+      width: 100px;
+}
+.cardToBePlayed{
+      position: absolute;
+      height: 150px;
+      width: 100px;
+}
+/************INVITE**************/
+.popup{
+      position: absolute;
+      top:33%;
+      background-color: grey;
+      color:white;
+      font-size: 25px;
+      text-align: center;
+      border-radius: 15px;
+}
+.playNotAvailable{
+      color:grey;
+}
+#inviteFriends{
+      z-index:100;
+}
+#newGameButton{
+      /*display: block;*/
+}
+.invitable{
+      background-color: blue;
+      margin-left:30%;
+      margin-right:30%;
+      border-radius: 15px;
+      cursor: pointer;
+}
+
+/************ANNOUNCE**************/
+#announceBoard{
+      position: absolute;
+      vertical-align: middle;
+      top:33%;
+      background-color: grey;
+      border-radius: 15px;
+}
+/*******************************/
+/************CHAT**************/
+/*******************************/
+#messageInput{
+      bottom:5%;
+      position: absolute;
+      width: 95%;
+      background-color: none;
+      background-color: rgba(0,0,0,0.5);
+      border: none;
+      color: white;
+      padding-left: 10px;
+      z-index:100000000;
+
+}
+#messages * {
+      position: absolute;
+      font-size: 25px;
+      bottom: 35px;
+}
+.system{
+      color: lightgrey;
+      font-style: italic;
+
+}
+.chat{
+      color: white;
+
+}
+#messages {
+}
+
+/*******************************/
+/**************USERS************/
+/*******************************/
+#usersArea{
+      text-align: center;
+}
+#userList li{
+      list-style: none;
+}

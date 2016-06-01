@@ -4,6 +4,7 @@ module.exports = function(name, socketid){
 		socketid: socketid,
 		roomid: null,
 		status: 'AVAILABLE',
+		friends: null,
 
 		updateStatus: function(status, io){
 			this.status = status;

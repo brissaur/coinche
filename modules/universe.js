@@ -8,20 +8,24 @@ module.exports = function (io) {
 	var connectedPlayers = [];
 	// var welcome = []; //players
 	var rooms = []; //rooms
-
+		// io.on('connection', function(socket){
+			
+		// });
+		// return;
 	io.on('connection', function(socket){
-		// console.log(socket.request);
-		var pName = 'robin';
-		assert(socket.request);
-		assert(socket.request.session);
-		assert(socket.request.session.passport);
+		// var pName = 'robin';
+		// assert(socket.request);
+		// assert(socket.request.session);
+		// assert(socket.request.session.passport);
 		var pId = socket.request.session.passport.user;
+		// console.log(pId);
 		User.findOne({ '_id' :  pId }, function(err, user) {
             // if there are any errors, return the error
-            if (err)
+            if (err){
                 console.log(err);
-            // check to see if theres already a user with that email
             	socket.disconnect();
+            }
+        	// check to see if theres already a user with that email
             if (user) {
         		var pName = user.local.email || user.facebook.name;
         		log('info',"User '" + pName + "' connected on socket "+socket.id);
@@ -31,9 +35,10 @@ module.exports = function (io) {
 								} else {
 									connectedPlayers[pName] = new Player(pName, socket.id);
 								}
+
 								socket.emit('hello', {name: pName});
-								io.on('disconnect', function(){
-									connectedPlayers[pName].status = 'DISCONNECTING';
+								socket.on('disconnect', function(){
+									connectedPlayers[pName].status = 'DISCONNECTED';
 									// if(connectedPlayers[pName].roomid)
 									// 	rooms[roomid].players[pName].socketid=null;
 									//broadcast to room
@@ -41,8 +46,18 @@ module.exports = function (io) {
 
 									connectedPlayers[pName].socketid = null;//question:faut-il free les objets?
 								});
+								socket.on('userData', function(data){//OK
+									var connectedUsers = [];
+									for (i in connectedPlayers ){
+										var player = connectedPlayers[i];
+										if (player.name != pName)
+											connectedUsers.push({name:player.name, status:player.status});
+									};
+									socket.emit('userData',{connectedUsers:connectedUsers});//todo
+									// socket.emit('userData',{connectedUsers:[{name:'pp1'},{name:'pp2'},{name:'pp3'}]});//todo
+								});
 								//CHAT MSG HANDLER
-								io.on('whisper', function(data){
+								socket.on('whisper', function(data){
 									assert(data.to); //name
 									assert(connectedPlayers[data.to]);
 									assert(data.msg);
@@ -58,7 +73,8 @@ module.exports = function (io) {
 									connectedPlayers[pName].roomid = newRoom.id;
 
 									//invite players if any
-									invitePlayers(pName, data.to);
+									if (data.to)
+										invitePlayers(pName, data.to);
 								});
 								socket.on('roomInvitation', function(data){
 									invitePlayers(pName, data.to);
