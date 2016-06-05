@@ -11,6 +11,10 @@ var CoincheApp = React.createClass({
       // console.log(data);
       self.setState({players:data.connectedUsers});
     });
+    socket.on('newConnection', function(data){
+      console.log('SYSTEM: User ' + data.from + ' is connected.');
+      self.setState({players:data.connectedUsers});
+    })
     // socket.on('hello', function(data){
     //   console.log('hello');
     // });

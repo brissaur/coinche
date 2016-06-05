@@ -9,7 +9,6 @@ module.exports = function (io) {
 	// var welcome = []; //players
 	var rooms = []; //rooms
 		// io.on('connection', function(socket){
-			
 		// });
 		// return;
 	io.on('connection', function(socket){
@@ -36,7 +35,11 @@ module.exports = function (io) {
 								} else {
 									connectedPlayers[pName] = new Player(pName, socket.id);
 								}
-
+								// socket.broadcast.emit('connection', {from:pName, connectedUsers:getConnectedUsers(pName)});
+								for (name in connectedPlayers){
+									if (name != pName)
+										io.to(connectedPlayers[name].socketid).emit('newConnection',  {from:pName, connectedUsers:getConnectedUsers(name)});
+								}
 								socket.emit('hello', {name: pName});
 								socket.on('disconnect', function(){
 									connectedPlayers[pName].status = 'DISCONNECTED';
@@ -48,13 +51,7 @@ module.exports = function (io) {
 									connectedPlayers[pName].socketid = null;//question:faut-il free les objets?
 								});
 								socket.on('userData', function(data){//OK
-									var connectedUsers = {};
-									for (i in connectedPlayers ){
-										var player = connectedPlayers[i];
-										if (player.name != pName)
-											connectedUsers[player.name] = {name:player.name, status:player.status};
-									};
-									socket.emit('userData',{connectedUsers:connectedUsers});//todo
+									socket.emit('userData',{connectedUsers:getConnectedUsers(pName)});//todo
 									// socket.emit('userData',{connectedUsers:[{name:'pp1'},{name:'pp2'},{name:'pp3'}]});//todo
 								});
 								//CHAT MSG HANDLER
@@ -153,6 +150,7 @@ module.exports = function (io) {
 		//     })(roomEvents[i], pName);
 		// }
 
+	});
 		function invitePlayers(from, to){
 			var roomid = connectedPlayers[from].roomid;
 			assert(roomid);
@@ -167,7 +165,16 @@ module.exports = function (io) {
 				}
 			}
 		}
-	});
+
+		function getConnectedUsers(pName){
+			var connectedUsers = {};
+			for (i in connectedPlayers ){
+				var player = connectedPlayers[i];
+				if (player.name != pName)
+					connectedUsers[player.name] = {name:player.name, status:player.status};
+			};
+			return connectedUsers;
+		}
 	// io.on('invitation', function(message){
 	// 	//todo
 	// 	assert(!welcome[message.username]);
