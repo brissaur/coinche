@@ -47,6 +47,14 @@ var CoincheApp = React.createClass({
       players.splice(players.indexOf(data.from),1);
       self.setState({peopleInRoom:players});
     });
+    socket.on('updateStatus', function(data){//todo: degueu...
+      console.log(' New status for ' + data.from + ': ' + data.status);
+        var players = self.state.players;
+        console.log(players);
+        players[data.from].status=data.status;
+        console.log(players);
+        self.setState({players:players});
+    });
     // }, 2);
     // console.log('userData');
       
@@ -194,9 +202,12 @@ var NewInvitationBoard = React.createClass({
     render: function(){//TODO: manage player selection for invitation
       // console.log({'this.prop.player': this.props.players});
       var self=this;
-      var players = this.props.players.map(function(player, i) {
+      // var players = this.props.players.map(function(player, i) {
+      var players = Object.keys(this.props.players).map(function(player, i) {
+        var name = self.props.players[player].name;
+        var status = self.props.players[player].status;
         return (
-          <li key={i}> <a value={player.name} onClick={self.handleSelectFriend.bind(self, player.name)} >{player.name}</a></li>
+          <li key={i}> <a value={name} onClick={self.handleSelectFriend.bind(self, name)} >{name + ' - ' + status}</a></li>
         );
       });
       // console.log({players:players});

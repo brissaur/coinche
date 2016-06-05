@@ -48,11 +48,11 @@ module.exports = function (io) {
 									connectedPlayers[pName].socketid = null;//question:faut-il free les objets?
 								});
 								socket.on('userData', function(data){//OK
-									var connectedUsers = [];
+									var connectedUsers = {};
 									for (i in connectedPlayers ){
 										var player = connectedPlayers[i];
 										if (player.name != pName)
-											connectedUsers.push({name:player.name, status:player.status});
+											connectedUsers[player.name] = {name:player.name, status:player.status};
 									};
 									socket.emit('userData',{connectedUsers:connectedUsers});//todo
 									// socket.emit('userData',{connectedUsers:[{name:'pp1'},{name:'pp2'},{name:'pp3'}]});//todo
