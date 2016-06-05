@@ -7,7 +7,7 @@ module.exports = {
 		port: PORT
 	},
 	database: {
-		url: "mongodb://localhost:27017/test" //mongodb://<user>:<pass>@mongo.onmodulus.net:27017/Mikha4ot		
+		url: "mongodb://127.0.0.1:27017/test" //mongodb://<user>:<pass>@mongo.onmodulus.net:27017/Mikha4ot		
 	},
     facebookAuth: {
         'clientID'      : '1689664917973659', // your App ID
