@@ -2,7 +2,7 @@ var socket = io();
 
 var CoincheApp = React.createClass({
   getInitialState: function(){
-    return {players:[], settingUpBoard: true, playBoard: false}
+    return {players:[], peopleInRoom:[],settingUpBoard: true, playBoard: false}
   },
   componentDidMount: function() {
     var self=this;
@@ -18,22 +18,47 @@ var CoincheApp = React.createClass({
     socket.emit('userData', {msg: 'testmsg'});
 
     socket.on('joinRoom', function(context){
-      console.log('received join room');
-      self.handleJoinRoom(context);
-      // this.setState({settingUpBoard: false, playBoard: true});
+      // console.log('received join room ');
+      // console.log(context);
+      self.setState({/*settingUpBoard: true,*/ playBoard: true, peopleInRoom: context.players});
+      // self.handleJoinRoom(context);
+      // self.setState({settingUpBoard: false, playBoard: true});
+    });
+    socket.on('join',function(data){
+      console.log('join');
+      console.log({data:data});
+      if (data.accept) {
+        // alert(data.from + ' joined the room');
+        //if not me
+        // var players = self.state.peopleInRoom;
+        // console.log(players);
+        // players.push(data.from);
+        // console.log(players);
+        // self.setState({peopleInRoom:players});
+        self.setState({peopleInRoom: data.players});
+      } else {
+        // alert(data.from +' did not join the room');
+        console.log(data.from +' did not join the room');
+      }
+    });
+    socket.on('leaveRoom', function(data){
+      // alert(data.from +' left the room');
+      var players = self.state.peopleInRoom;
+      players.splice(players.indexOf(data.from),1);
+      self.setState({peopleInRoom:players});
     });
     // }, 2);
     // console.log('userData');
       
   },
-  handleJoinRoom: function(context){
-    this.setState({settingUpBoard: false, playBoard: true});
+  handleLeaveRoom: function(context){
+    this.setState({peopleInRoom:[], settingUpBoard:true, playBoard:false});
   },
 	render: function(){
 		return (
       <div>
         <SettingUpBoard players={this.state.players} className={!this.state.settingUpBoard?'hidden':''}/>
-        <PlayBoard className={!this.state.playBoard?'hidden':''}/>
+        <PlayBoard players={this.state.peopleInRoom} leaveRoom={this.handleLeaveRoom} className={!this.state.playBoard?'hidden':''}/>
       </div>
     );
   }
@@ -125,27 +150,28 @@ var NewInvitationBoard = React.createClass({
   //props=players
   //state=invitesFriends
     getInitialState: function() {
-      return {newGame: true, inviteFriends: false, leaveRoom: false, launchGame: false, inviteFriendsBoard:false, playersToInvite: []};
+      return {inviteFriends: true, leaveRoom: false, launchGame: false, inviteFriendsBoard:false, playersToInvite: []};
     },
     handleNewGame: function() {
-      this.setState({newGame: false, inviteFriends: true, leaveRoom: true, launchGame: true});
+      this.setState({inviteFriends: true, leaveRoom: true, launchGame: true});
     },
     handleInviteFriends: function() {
-      this.setState({newGame: false, inviteFriends: false, leaveRoom: false, launchGame: false, inviteFriendsBoard:true});
+      this.setState({inviteFriends: false, leaveRoom: false, launchGame: false, inviteFriendsBoard:true});
     },
     handleLeaveRoom: function() {
-      this.setState({newGame: true, inviteFriends: false, leaveRoom: false, launchGame: false});
+      this.setState({inviteFriends: true, leaveRoom: false, launchGame: false});
+      socket.emit('leaveRoom',{});
     },
     handleLaunchGame: function() {
       // this.setState({newGame: false, inviteFriends: false, leaveRoom: false, launchGame: false});
     },
     handleFriendInvitation(){
         //send invite message (this.state.playersToInvite)
-        socket.emit('newRoom', {to:this.state.playersToInvite});
-        this.setState({inviteFriendsBoard:false, playersToInvite:[]});
+        socket.emit('roomInvitation', {to:this.state.playersToInvite});
+        this.setState({inviteFriends: true, inviteFriendsBoard:false, playersToInvite:[], leaveRoom: true});
     },
     cancelFriendInvitation(){
-        this.setState({inviteFriendsBoard:false, newGame: false, inviteFriends: true, leaveRoom: true, launchGame: true});
+        this.setState({inviteFriends:true, inviteFriendsBoard:false,  inviteFriends: true, leaveRoom: true, launchGame: true});
     },
     // handleSelectFriend: function() {
     //   alert('handleSelectFriend');
@@ -156,15 +182,17 @@ var NewInvitationBoard = React.createClass({
         var friendsSelected = this.state.playersToInvite;
         var targetIndex= friendsSelected.indexOf(name);
         if (targetIndex == -1){
+          // console.log('+a');
           friendsSelected.push(name);
         } else {
+          // console.log('-a');
           friendsSelected.splice(targetIndex, 1)
         }
         this.setState({playersToInvite:friendsSelected});
         // console.log(this.state.playersToInvite);
     },
     render: function(){//TODO: manage player selection for invitation
-      console.log({'this.prop.player': this.props.players});
+      // console.log({'this.prop.player': this.props.players});
       var self=this;
       var players = this.props.players.map(function(player, i) {
         return (
@@ -176,8 +204,7 @@ var NewInvitationBoard = React.createClass({
           // <button id="pute" className={!this.state.newGame?'hidden':''}  type='button' onClick={this.handleSelectFriend}> Name </button> 
       return (
         <div className={this.props.className}>
-          <button id="newGameButton" className={!this.state.newGame?'hidden':''} type='button' onClick={this.handleNewGame}> New Game </button> 
-          <button id="inviteFriendsButton" className={!this.state.inviteFriends?'hidden':''} type='button' onClick={this.handleInviteFriends}> Invite Friends </button> 
+          <button id="inviteFriendsButton" className={!this.state.inviteFriends?'hidden':''} type='button' onClick={this.handleInviteFriends}> Invite Friends For A Game</button> 
         <div id="inviteFriendsBoard" className={!this.state.inviteFriendsBoard?'hidden':''}>
           <ul>
             {players}
@@ -206,47 +233,49 @@ var NewInvitationBoard = React.createClass({
 var PlayBoard = React.createClass({
 //   //props:
 //   //state: players[0...3]
-//   getInitialState: function(){
-//     return {
+  getInitialState: function(){
+    return {
 //       players: [{name: 'a', announce:'80H', dealer:true, swapButton:true}, {name: 'b', announce:'', dealer:false, swapButton:false}, {name: 'c', announce:'', dealer:false, swapButton:false}, {name: 'd', announce:'', dealer:false, swapButton:false}],
 //       cards: [{value:'7',color:'H', playable:true}, {value:'9',color:'H', playable:true}, {value:'J',color:'H', playable:true}],
 //       playedCards: [{value:'7',color:'S', playable:true}, {value:'9',color:'S', playable:true}],
 //       currentAnnounce: {value:'100',color:'AT'}
-
-//     };
-//   },
+          aa:null
+    };
+  },
 //   handleAnnounce: function(){
 //     alert('announce');
 //   },
   render: function(){
-//     var PlayersSpace = this.state.players.map(function(player) {
-//       return (
-//         <PlayerSpace playerSpace={player}/>
-//       );
-//     });
+    var PlayersSpace = this.props.players.map(function(pName, i) {
+      var player = {name: pName};
+      var places = ["SOUTH","EAST","NORTH","WEST"];
+      return (
+        <PlayerSpace key={i} playerSpace={player} place={places[i]}/>
+      );
+    });
     return(
       <div className={this.props.className}>
-        <h1> You are on the PlayBoard </h1>
+        {PlayersSpace}
       </div>
         // <AnnounceBoard currentAnnounce={this.state.currentAnnounce} handleAnnounce={this.handleAnnounce}/>
         // <Tapis cards={this.state.playedCards}/>
-        // {PlayersSpace}
+        // <h1> You are on the PlayBoard </h1>
         // <MySpace cards={this.state.cards}/>
     )
   }
 });
-// var PlayerSpace = React.createClass({
-//   render: function(){
-//     return (
-//       <div id={'playerSpace' + this.props.playerSpace.name}>
-//         <p> {this.props.playerSpace.name} </p>
-//         <div id={'announce' + this.props.playerSpace.name}>{this.props.playerSpace.announce}</div>
-//         <div id={'dealer' + this.props.playerSpace.name} className={this.props.playerSpace.dealer?'':'hidden'}>D</div>
-//         <button className={this.props.playerSpace.swapButton?'':'hidden'}>Swap Place</button>
-//       </div>
-//     )
-//   }
-// });
+var PlayerSpace = React.createClass({
+  render: function(){
+    return (
+      <div id={'playerSpace' + this.props.playerSpace.name}>
+        <div id={this.props.place}> {this.props.place} : {this.props.playerSpace.name} </div>
+        <button>Swap Place</button>
+      </div>
+    )
+  }
+});
+        // <div id={'announce' + this.props.playerSpace.name}>{this.props.playerSpace.announce}</div>
+        // <div id={'dealer' + this.props.playerSpace.name} className={this.props.playerSpace.dealer?'':'hidden'}>D</div>
 // var AnnounceBoard = React.createClass({
 //   render: function(){
 //     var availableAnnounce = [80,90,100,110,120,130,140,150,160,170,250,270];

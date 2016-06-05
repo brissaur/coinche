@@ -65,21 +65,28 @@ module.exports = function (io) {
 						    		io.to(connectedPlayers[data.to].socketid).emit('chat',{from: pName, data: data.msg});
 								});
 								//GAME PREPARATION HANDLER
-								socket.on('newRoom',function(data){ //optional 'to':players to be invited  //OK
-									assert(connectedPlayers[pName].status == 'AVAILABLE');
-									connectedPlayers[pName].status == 'INROOM';
+								socket.on('roomInvitation',function(data){ //optional 'to':players to be invited  //OK
+									var pStatus = connectedPlayers[pName].status;
+									assert(pStatus == 'AVAILABLE' || (pStatus == 'INROOM'));
+									assert(data.to);
+									if (pStatus=='AVAILABLE'){
+										connectedPlayers[pName].status == 'INROOM';
+										var newRoom = new Room(pName, io, connectedPlayers, rooms, socket);//create new room
+										rooms[newRoom.id] = newRoom;
+									} else {
+										assert(connectedPlayers[pName].roomid)
+										assert(rooms[connectedPlayers[pName].roomid].leader == pName);
+									}
 
-									var newRoom = new Room(pName, io, connectedPlayers, rooms, socket);//create new room
-									rooms[newRoom.id] = newRoom;
-									connectedPlayers[pName].roomid = newRoom.id;
-									socket.emit('joinRoom',{});
+									// connectedPlayers[pName].roomid = newRoom.id;
+									// socket.emit('joinRoom',{players: []});
 									//invite players if any
-									if (data.to)
-										invitePlayers(pName, data.to);
-								});
-								socket.on('roomInvitation', function(data){  //OK ?? check
+									// if (data.to)
 									invitePlayers(pName, data.to);
 								});
+								// socket.on('roomInvitation', function(data){  //OK ?? check
+								// 	invitePlayers(pName, data.to);
+								// });
 								socket.on('acceptInvite', function(data){ //WIP
 									var roomid = connectedPlayers[pName].roomid;
 									assert(roomid);
