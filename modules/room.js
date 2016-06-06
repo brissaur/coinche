@@ -127,9 +127,24 @@ module.exports = function(host, io, connectedPlayers, rooms, hostsocket) {
 		},
 		swap: function(from,to){
 			assert(this.attendee[from]);
-			assert(this.attendee[to]);
 			assert(!this.game);
-			// this.
+			var fromIndex = this.players.indexOf(from);
+			var toIndex = (to + fromIndex)%4;
+			if (this.players[toIndex]){//if the place is not empty
+				this.players[fromIndex] = this.players[toIndex];
+				this.players[toIndex] = from;
+			} else {
+				assert(this.availablePlayerId.indexOf(toIndex) != -1);
+				this.availablePlayerId.splice(this.availablePlayerId.indexOf(toIndex),1);
+				this.availablePlayerId.push(fromIndex);
+				this.players[fromIndex] = null;
+				this.players[toIndex] = from;
+			}
+			for (var i in this.players){
+				var pName=this.players[i];
+				if (pName)
+					io.to(attendee[pName].socketid).emit('swap',{players: this.playersFromViewOf(pName)});
+			}
 		},
 		startGame: function(from){
 			assert(from==this.leader);

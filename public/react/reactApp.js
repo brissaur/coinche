@@ -46,7 +46,10 @@ var CoincheApp = React.createClass({
           self.setState({playersToInvite:players});
         }
     });
+    socket.on('swap', function(data){
+      self.setState({peopleInRoom:data.players});
 
+    });
 
       
   },
@@ -78,7 +81,7 @@ var TheyInviteYou = React.createClass({ //OK
       });                
     },
     acceptInvitation: function(accept){
-      this.setState({display: false, inviteFrom:null})
+      this.setState({display: false, inviteFrom:null});
       socket.emit('acceptInvite',{accept:accept});
     },
     render: function(){
@@ -154,6 +157,7 @@ var PlayBoard = React.createClass({
           // null
     };
   },
+
 //   handleAnnounce: function(){
 //     alert('announce');
 //   },
@@ -162,20 +166,20 @@ var PlayBoard = React.createClass({
       <div className={this.props.className}>
         <div className={'row'}>
           <div className='col-xs-offset-4 col-xs-4'>
-            <PlayerSpace place='NORTH' player={this.props.players[2]}/>
+            <PlayerSpace place='NORTH' playerIndex={2} player={this.props.players[2]}/>
           </div>
         </div>
         <div className={'row'}>
           <div className='col-xs-4'>
-            <PlayerSpace place='WEST' player={this.props.players[1]}/>
+            <PlayerSpace place='WEST' playerIndex={1} player={this.props.players[1]}/>
           </div>
           <div className='col-xs-offset-4 col-xs-4'>
-            <PlayerSpace place='EAST' player={this.props.players[3]}/>
+            <PlayerSpace place='EAST' playerIndex={3} player={this.props.players[3]}/>
           </div>
         </div>
         <div className={'row'}>
           <div className='col-xs-offset-4 col-xs-4'>
-            <PlayerSpace place='SOUTH' player={this.props.players[0]}/>
+            <PlayerSpace place='SOUTH' playerIndex={0} player={this.props.players[0]}/>
           </div>
         </div>
       </div>
@@ -187,12 +191,15 @@ var PlayBoard = React.createClass({
   }
 });
 var PlayerSpace = React.createClass({
+  handleSwap: function(pIndex){
+    socket.emit('swap', {to:pIndex})
+  },
   render: function(){
     return (
       <div id={this.props.place}>
         <p> {this.props.place} : {this.props.player.name} </p>
         <div className={this.props.dealer?'':'hidden'}>D</div>
-        <button>Swap Place</button>
+        <button className={this.props.playerIndex==0?'hidden':''} onClick={this.handleSwap.bind(this, this.props.playerIndex)}>Swap Place</button>
       </div>
     )
   }

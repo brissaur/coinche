@@ -104,7 +104,7 @@ module.exports = function (io) {
 								socket.on('swap', function(data){
 									var roomid = connectedPlayers[pName].roomid;
 									assert(roomid);
-									assert(data.to);
+									assert(data.to >= 0);
 									rooms[roomid].swap(pName,data.to);
 								});
 								socket.on('startGame', function(data){
