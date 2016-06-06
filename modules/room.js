@@ -82,6 +82,7 @@ module.exports = function(host, io, connectedPlayers, rooms, hostsocket) {
 		leaveRoom: function(from, socket){
 			assert(this.attendee[from]);
 			var pIndex = this.players.indexOf(from);
+			socket.leave(this.id);
 			this.availablePlayerId.push(pIndex);
 			if(this.attendee.length==1){//todo
 
@@ -93,17 +94,18 @@ module.exports = function(host, io, connectedPlayers, rooms, hostsocket) {
 
 			this.attendee[from].updateStatus('AVAILABLE', io);
 			this.attendee[from].roomid=null;
-			socket.leave(this.id);
-			for (pName in this.attendee){
-				io.to(attendee[pName].socketid).emit('leaveRoom',{from: from, players: this.playersFromViewOf(pName)});
+			for(var i in this.players){
+				if (this.players[i] == from)
+					this.players[i] = null; //todo: check how to remove elem from array
+			}
+			for (var i in this.players){
+				var pName=this.players[i];
+				if (pName)
+					io.to(attendee[pName].socketid).emit('leaveRoom',{from: from, players: this.playersFromViewOf(pName)});
 			}
 
 			this.attendee[from] = null;
 			delete(this.attendee[from]);
-			for(var i in this.players){
-				if (this.players[i] == from)
-					this.players[i].remove; //todo: check how to remove elem from array
-			}
 			log('DEBUG','Player ' + from + ' left the room.');
 			// console.log(this);
 		},
@@ -156,19 +158,12 @@ module.exports = function(host, io, connectedPlayers, rooms, hostsocket) {
 
 		},
 		playersFromViewOf: function(pName){
-			// console.log(this.players);
-			// console.log('from view of '+pName+ ' is...');
 			var pIndex = this.players.indexOf(pName);
 			assert(pIndex != -1);
 			var view = [{},{},{},{}];
-			// var pLength = 4 - this.availablePlayerId.length;
-			// console.log(this.players);
-			// console.log(this.players.length);
 			for (i in this.players) {
 				view[(i - pIndex + 4)%4] = {name: this.players[i]};
 			}
-			// console.log(view);
-			// console.log('end');
 			return view;
 		}
 	}

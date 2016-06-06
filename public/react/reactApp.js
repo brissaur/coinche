@@ -32,10 +32,11 @@ var CoincheApp = React.createClass({
       }
     });
     socket.on('leaveRoom', function(data){
+      console.log(data.from + ' left the room');
       // alert(data.from +' left the room');
-      var players = self.state.peopleInRoom;
-      players.splice(players.indexOf(data.from),1);
-      self.setState({peopleInRoom:players});
+      // var players = self.state.peopleInRoom;
+      // players.splice(players.indexOf(data.from),1);
+      self.setState({peopleInRoom:data.players});
     });
     socket.on('updateStatus', function(data){//todo: degueu...
         var players = self.state.playersToInvite;
@@ -50,7 +51,9 @@ var CoincheApp = React.createClass({
       
   },
   handleLeaveRoom: function(){
-    alert('leaving room...');
+    socket.emit('leaveRoom', {});
+    this.setState({peopleInRoom:[{},{},{},{}]})
+    // alert('leaving room...');
   },
   render: function(){
     return (
