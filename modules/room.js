@@ -12,13 +12,13 @@ module.exports = function(host, io, connectedPlayers, rooms, hostsocket) {
 	attendee[host].updateStatus('INROOM', io);
 	attendee[host].roomid=generatedid;
 	hostsocket.join(generatedid);
-	io.to(attendee[host].socketid).emit('joinRoom', {players: [host]});//send context
+	io.to(attendee[host].socketid).emit('joinRoom', {players: [{name:host},{},{},{}]});//send context
 	return {
 		id: generatedid,// on following template! 'R' + int
 		//manage room socket
 		leader: host,
 		attendee: attendee, //pointeur sur element de connectedPlayers
-		players: [host],
+		players: [host, , , ],
 		availablePlayerId: [3,2,1],
 		game: null,
 
@@ -31,7 +31,6 @@ module.exports = function(host, io, connectedPlayers, rooms, hostsocket) {
 			return count;
 		},
 		invite: function(from,to){ //from=string, to=string
-			log('DEBUG', 'invitation from ' + from + ' to ' + to + '.');
 			assert(this.attendee[from]);
 			assert(from==this.leader);
 			assert(connectedPlayers[to].status == 'AVAILABLE');
@@ -41,9 +40,8 @@ module.exports = function(host, io, connectedPlayers, rooms, hostsocket) {
 			this.attendee[to].roomid=this.id;
 			this.attendee[to].updateStatus('INVITATION_PENDING', io);
 			io.to(this.attendee[to].socketid).emit('roomInvitation', {from:from});
-			console.log('invitation');
 			log('DEBUG', 'Invitation from player ' + from + ' to player ' + to + '.');
-			console.log(this);
+			// console.log(this);
 		},
 		acceptInvite: function(from, accept, socket){
 			assert(this.attendee[from]);
@@ -79,7 +77,7 @@ module.exports = function(host, io, connectedPlayers, rooms, hostsocket) {
 				io.to(this.id).emit('join',{from: from, accept:accept});
 			}
 			log('DEBUG','Player ' + from + (accept? ' accepted ':' refused ') + 'the invitation.');
-			console.log(this);
+			// console.log(this);
 		},
 		leaveRoom: function(from, socket){
 			assert(this.attendee[from]);
@@ -107,7 +105,7 @@ module.exports = function(host, io, connectedPlayers, rooms, hostsocket) {
 					this.players[i].remove; //todo: check how to remove elem from array
 			}
 			log('DEBUG','Player ' + from + ' left the room.');
-			console.log(this);
+			// console.log(this);
 		},
 		kick: function(from,to,socket){
 			assert(this.attendee[from]);
@@ -158,13 +156,19 @@ module.exports = function(host, io, connectedPlayers, rooms, hostsocket) {
 
 		},
 		playersFromViewOf: function(pName){
+			// console.log(this.players);
+			// console.log('from view of '+pName+ ' is...');
 			var pIndex = this.players.indexOf(pName);
 			assert(pIndex != -1);
-			var view = [];
-			var pLength = this.players.length;
+			var view = [{},{},{},{}];
+			// var pLength = 4 - this.availablePlayerId.length;
+			// console.log(this.players);
+			// console.log(this.players.length);
 			for (i in this.players) {
-				view[(i - pIndex + pLength)%pLength] = this.players[i];
+				view[(i - pIndex + 4)%4] = {name: this.players[i]};
 			}
+			// console.log(view);
+			// console.log('end');
 			return view;
 		}
 	}
