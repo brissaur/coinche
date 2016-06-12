@@ -3,7 +3,7 @@ var socket = io();
 var CoincheApp = React.createClass({
   getInitialState: function(){
     return {youInviteThem: true, playersToInvite:[], theyInviteYou: false, inviteFrom: null, playBoard: true, 
-      peopleInRoom:[{},{},{},{}]}
+      peopleInRoom:[{},{},{},{}], leaveButton: false}
   },
   componentDidMount: function() {
     var self=this;
@@ -20,7 +20,7 @@ var CoincheApp = React.createClass({
     socket.on('joinRoom', function(context){
       // alert('joinROom');
       console.log(context);
-      self.setState({peopleInRoom: context.players});
+      self.setState({peopleInRoom: context.players, leaveButton: true});
     });
     socket.on('join',function(data){
       console.log('join');
@@ -55,7 +55,7 @@ var CoincheApp = React.createClass({
   },
   handleLeaveRoom: function(){
     socket.emit('leaveRoom', {});
-    this.setState({peopleInRoom:[{},{},{},{}]})
+    this.setState({peopleInRoom:[{},{},{},{}], leaveButton:false})
     // alert('leaving room...');
   },
   render: function(){
@@ -64,7 +64,7 @@ var CoincheApp = React.createClass({
         <YouInviteThem players={this.state.playersToInvite} className={!this.state.youInviteThem?'hidden':''}/>
         <TheyInviteYou inviteFrom={this.state.inviteFrom} className={!this.state.theyInviteYou?'hidden':''}/>
         <PlayBoard players={this.state.peopleInRoom} leaveRoom={this.handleLeaveRoom} className={!this.state.playBoard?'hidden':''}/>
-        <button onClick={this.handleLeaveRoom}>Leave Room</button>
+        <button onClick={this.handleLeaveRoom} className={!this.state.leaveButton?'hidden':''}>Leave Room</button>
       </div>
     );
   }
