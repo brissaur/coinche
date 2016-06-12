@@ -2,18 +2,17 @@ var Deck 	= require('./deck');
 var Cards 	= require('./card').template();
 var log    	= require('./log');
 module.exports = function(io, namespace, attendee, players) {
-	var attendees=[];
+	var attendees={};
 	for (aName in attendee){
-		attendees.push({global:aName});
+		attendees[aName] = {global:attendee[aName]};
 	}
 	players.forEach(function(player){
 		attendees[player].cards=null;
 	});
-	var s;
 	return {
 		namespace: namespace,
 		deck: new Deck(),
-		players: gamePlayers,
+		players: players,
 		attendee: attendees,
 		spectators: null, //todo: need to know who he is spectating
 		scores:null,
@@ -27,9 +26,9 @@ module.exports = function(io, namespace, attendee, players) {
 		},
 		start: function(){
 			//emit data to players
-			attendee.forEach(function(aId){
-				aId.global.updateStatus('INGAME');
-			});
+			for (aId in this.attendee){
+				this.attendee[aId].global.updateStatus('INGAME', io);
+			};
 			io.to(this.namespace).emit('startGame', {});//todo: players, dealer, 
 			this.nextRound();
 		},
@@ -150,17 +149,17 @@ module.exports = function(io, namespace, attendee, players) {
 			return this.current.player;
 		},
 		getNextPlayer : function(){
-			return (this.current.player+1)%this.players.length
+			return (this.current.player+1)%this.players.length;
 		},
 		getCurrentPlayerSocketId: function(){
-			return attendee[players[this.current.player]].global.socketid;
+			return this.attendee[players[this.current.player]].global.socketid;
 		},
 		distribute: function(){
 			var cards = this.deck.distribute();
 			for (var i = 0; i < this.players.length; i++) {
 				var targetPIndex = (i+this.current.dealer+1)%this.players.length;
 				this.attendee[this.players[targetPIndex]].cards = cards[i];
-				io.to(this.getCurrentPlayerSocketId()).emit('distribute',{cards: cards[i]});
+				io.to(this.attendee[this.players[targetPIndex]].global.socketid).emit('distribute',{cards: cards[i]});
 			};
 		},
 		nextRound: function(){

@@ -23,7 +23,7 @@ var CoincheApp = React.createClass({
       self.setState({peopleInRoom: context.players, leaveButton: true});
     });
     socket.on('join',function(data){
-      console.log('join');
+      // console.log('join');
       console.log({data:data});
       if (data.accept) {
         self.setState({peopleInRoom: data.players});
@@ -41,7 +41,7 @@ var CoincheApp = React.createClass({
     socket.on('updateStatus', function(data){//todo: degueu...
         var players = self.state.playersToInvite;
         if (players[data.from]){
-          console.log(' New status for ' + data.from + ': ' + data.status);
+          // console.log(' New status for ' + data.from + ': ' + data.status);
           players[data.from].status=data.status;
           self.setState({playersToInvite:players});
         }
@@ -49,6 +49,32 @@ var CoincheApp = React.createClass({
     socket.on('swap', function(data){
       self.setState({peopleInRoom:data.players});
 
+    });
+    socket.on('startEnabled', function(data){
+      self.setState({startButton:true});
+      console.log('enable');
+    });
+    socket.on('startDisabled', function(data){
+      self.setState({startButton:false});
+      console.log('disable');
+    });
+    socket.on('startGame', function(data){
+      console.log('startGame');
+    });
+
+    socket.on('distribute', function(data){
+      console.log('distribute');
+      console.log({data:data});
+    });
+
+    socket.on('announce', function(data){
+      console.log('announce');
+      console.log({data:data});
+    });
+
+    socket.on('play', function(data){
+      console.log('play');
+      console.log({data:data});
     });
 
       
@@ -58,12 +84,16 @@ var CoincheApp = React.createClass({
     this.setState({peopleInRoom:[{},{},{},{}], leaveButton:false})
     // alert('leaving room...');
   },
+  handleStartGame: function(){
+    socket.emit('startGame',{});
+  },
   render: function(){
     return (
       <div>
         <YouInviteThem players={this.state.playersToInvite} className={!this.state.youInviteThem?'hidden':''}/>
         <TheyInviteYou inviteFrom={this.state.inviteFrom} className={!this.state.theyInviteYou?'hidden':''}/>
         <PlayBoard players={this.state.peopleInRoom} leaveRoom={this.handleLeaveRoom} className={!this.state.playBoard?'hidden':''}/>
+        <button onClick={this.handleStartGame} className={!this.state.startButton?'hidden':''}>Start Game</button>
         <button onClick={this.handleLeaveRoom} className={!this.state.leaveButton?'hidden':''}>Leave Room</button>
       </div>
     );

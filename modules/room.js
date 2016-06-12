@@ -70,6 +70,10 @@ module.exports = function(host, io, connectedPlayers, rooms, hostsocket) {
 				this.attendee[from].roomid=this.id;
 				socket.join(this.id);
 				io.to(this.attendee[from].socketid).emit('joinRoom', {players: this.playersFromViewOf(from)});//send context
+				console.log(this.nbPlayers());
+				if (this.nbPlayers() == 4){
+					io.to(this.attendee[this.leader].socketid).emit('startEnabled');
+				}
 			} else {
 				this.attendee[from].updateStatus('AVAILABLE', io);
 				this.attendee[from] = null;
@@ -106,6 +110,9 @@ module.exports = function(host, io, connectedPlayers, rooms, hostsocket) {
 
 			this.attendee[from] = null;
 			delete(this.attendee[from]);
+			if (this.nbPlayers() == 3){
+				io.to(this.attendee[this.leader].socketid).emit('startDisabled');
+			}
 			log('DEBUG','Player ' + from + ' left the room.');
 			// console.log(this);
 		},
@@ -148,7 +155,8 @@ module.exports = function(host, io, connectedPlayers, rooms, hostsocket) {
 		},
 		startGame: function(from){
 			assert(from==this.leader);
-			this.game = new Game(io, this.id, attendee, players);
+			this.game = new Game(io, this.id, this.attendee, this.players);
+			io.to(this.attendee[this.leader].socketid).emit('startDisabled');
 			this.game.start();
 		},
 		chat: function(from, msg){
