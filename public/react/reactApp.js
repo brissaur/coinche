@@ -196,7 +196,7 @@ var PlayerSpace = React.createClass({
   },
   render: function(){
     return (
-      <div id={this.props.place}>
+      <div id={this.props.place} className={this.props.player.name?'':'hidden'}>
         <p> {this.props.place} : {this.props.player.name} </p>
         <div className={this.props.dealer?'':'hidden'}>D</div>
         <button className={this.props.playerIndex==0?'hidden':''} onClick={this.handleSwap.bind(this, this.props.playerIndex)}>Swap Place</button>
