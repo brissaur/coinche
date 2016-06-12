@@ -62,10 +62,7 @@ var CoincheApp = React.createClass({
       console.log('startGame');
     });
 
-    socket.on('distribute', function(data){
-      console.log('distribute');
-      console.log({data:data});
-    });
+
 
     socket.on('announce', function(data){
       console.log('announce');
@@ -212,6 +209,7 @@ var PlayBoard = React.createClass({
             <PlayerSpace place='SOUTH' playerIndex={0} player={this.props.players[0]}/>
           </div>
         </div>
+        <MySpace />
       </div>
         // <AnnounceBoard currentAnnounce={this.state.currentAnnounce} handleAnnounce={this.handleAnnounce}/>
         // <Tapis cards={this.state.playedCards}/>
@@ -289,27 +287,41 @@ var PlayerSpace = React.createClass({
 //     )
 //   }
 // });
-// var MySpace = React.createClass({
-//   render: function(){
-//     var Cards=this.props.cards.map(function(card) {
-//       return (
-//         <Card card={card} className='card cardToBePlayed'/>
-//       );
-//     });
-//     return (
-//       <div id='mySpace'>
-//         {Cards}
-//       </div>
-//     )
-//   }
-// });
-// var Card = React.createClass({
-//   render: function(){
-//     return (
-//       <img src={'/public/images/cards/' + this.props.card.value + this.props.card.color +'.png'} className={'card '+this.props.className}></img>
-//     );
-//   }
-// });
+var MySpace = React.createClass({
+  getInitialState: function(){
+    return {cards: []}
+  },
+  componentDidMount: function() {
+    var self = this;
+    socket.on('distribute', function(data){
+      console.log('distribute');
+      console.log({data:data});
+      self.setState({cards:data.cards});
+    });
+  },
+  render: function(){
+    var cards=this.state.cards.map(function(card,i) {
+      return (
+        <Card key={i} card={card} className='card cardToBePlayed'/>
+      );
+    });
+    return (
+        <div className={'row'}>
+          <div className='col-xs-12' id='yourHand'>
+            {cards}
+          </div>
+        </div>
+    )
+  }
+});
+var Card = React.createClass({
+  render: function(){
+    return (
+      <img src={'/public/images/cards/' + this.props.card +'.png'} className={'card '+this.props.className}></img>
+    );
+      // <img src={'/public/images/cards/' + this.props.card.value + this.props.card.color +'.png'} className={'card '+this.props.className}></img>
+  }
+});
 
 //RENDER
  ReactDOM.render(
