@@ -64,7 +64,7 @@ module.exports = function(host, io, connectedPlayers, rooms, hostsocket) {
 				// io.to(this.id).emit('join',{from: from, accept:accept});
 				for (i in this.players){
 					if (this.players[i])
-						io.to(attendee[this.players[i]].socketid).emit('join',{from: from, accept: accept, players: this.playersFromViewOf(this.players[i])});
+						io.to(this.attendee[this.players[i]].socketid).emit('join',{from: from, accept: accept, players: this.playersFromViewOf(this.players[i])});
 				}
 				this.attendee[from].updateStatus('INROOM', io);
 				this.attendee[from].roomid=this.id;

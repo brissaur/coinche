@@ -62,12 +62,11 @@ var CoincheApp = React.createClass({
       console.log('startGame');
     });
 
-
-
-    socket.on('announce', function(data){
-      console.log('announce');
-      console.log({data:data});
+    socket.on('updatePlayerInfo', function(data){
+      self.setState({peopleInRoom: data.players});
     });
+
+
 
     socket.on('play', function(data){
       console.log('play');
@@ -176,13 +175,29 @@ var PlayBoard = React.createClass({
 //   //props:
 //   //state: players[0...3]
   getInitialState: function(){
-    return {players: []
+    return {mustAnnounce: false, currentAnnounce: null, players: []
 //       players: [{name: 'a', announce:'80H', dealer:true, swapButton:true}, {name: 'b', announce:'', dealer:false, swapButton:false}, {name: 'c', announce:'', dealer:false, swapButton:false}, {name: 'd', announce:'', dealer:false, swapButton:false}],
 //       cards: [{value:'7',color:'H', playable:true}, {value:'9',color:'H', playable:true}, {value:'J',color:'H', playable:true}],
 //       playedCards: [{value:'7',color:'S', playable:true}, {value:'9',color:'S', playable:true}],
 //       currentAnnounce: {value:'100',color:'AT'}
           // null
     };
+  },
+  componentDidMount: function(){
+    var self = this;
+    socket.on('announce', function(data){
+      console.log('announce');
+      console.log({data:data});
+      self.setState({mustAnnounce:true, currentAnnounce:data.announce})
+    });
+    socket.on('announced', function(data){
+      console.log('announced');
+      console.log({data:data});
+    });
+
+  },
+  handleAnnounce: function(){
+    this.setState({mustAnnounce: false, currentAnnounce: null});
   },
 
 //   handleAnnounce: function(){
@@ -200,7 +215,8 @@ var PlayBoard = React.createClass({
           <div className='col-xs-4'>
             <PlayerSpace place='WEST' playerIndex={1} player={this.props.players[1]}/>
           </div>
-          <div className='col-xs-offset-4 col-xs-4'>
+          <AnnounceBoard className={this.state.mustAnnounce?'':'hidden'} currentAnnounce={this.state.currentAnnounce} handleAnnounce={this.handleAnnounce}/>
+          <div className={(this.state.mustAnnounce?'':'col-xs-offset-4 ') + 'col-xs-4'}>
             <PlayerSpace place='EAST' playerIndex={3} player={this.props.players[3]}/>
           </div>
         </div>
@@ -226,7 +242,8 @@ var PlayerSpace = React.createClass({
     return (
       <div id={this.props.place} className={this.props.player.name?'':'hidden'}>
         <p> {this.props.place} : {this.props.player.name} </p>
-        <div className={this.props.dealer?'':'hidden'}>D</div>
+        <div className={this.props.player.announce?'':'hidden'}>{(this.props.player.announce?'Announce: ' + this.props.player.announce.value + this.props.player.announce.color:'')}</div>
+        <div className={this.props.player.dealer?'':'hidden'}>DEALER</div>
         <button className={this.props.playerIndex==0?'hidden':''} onClick={this.handleSwap.bind(this, this.props.playerIndex)}>Swap Place</button>
       </div>
     )
@@ -235,42 +252,66 @@ var PlayerSpace = React.createClass({
 });
         // <div id={'announce' + this.props.playerSpace.name}>{this.props.playerSpace.announce}</div>
         // <div id={'dealer' + this.props.playerSpace.name} className={this.props.playerSpace.dealer?'':'hidden'}>D</div>
-// var AnnounceBoard = React.createClass({
-//   render: function(){
-//     var availableAnnounce = [80,90,100,110,120,130,140,150,160,170,250,270];
-//     var currentAnnounceVal=this.props.currentAnnounce.value;
-//     var possibleAnnounces=availableAnnounce.map(function(value) {
-//     if (value>currentAnnounceVal){
-//         return (
-//           <li><a>{value}</a></li>
-//         );
-//       } else {
-//         return null;
-//       }
-//     });
-//     return (
-//       <div id='announceBoard'>
-//         <ul>
-//           {possibleAnnounces}
-//         </ul>
-//         <ul>
-//           <li><a>H</a></li>
-//           <li><a>S</a></li>
-//           <li><a>D</a></li>
-//           <li><a>C</a></li>
-//           <li><a>AT</a></li>
-//           <li><a>NT</a></li>
-//         </ul>
-//         <ul>
-//           <li><a>Announce</a></li>
-//           <li><a>Pass</a></li>
-//           <li><a>Coinche</a></li>
-//         </ul>
+var AnnounceBoard = React.createClass({
+  getInitialState: function(){
+    return {value: null, color: null}
+  },
+  selectValue: function(value){
+    this.setState({value:value});
+  },
+  selectColor: function(color){
+    this.setState({color:color});
 
-//       </div>
-//     )
-//   }
-// });
+  },
+  handleSubmit: function(action){
+    console.log(action);
+    if (action == 'coinche'){
+      socket.emit('announce',{announce:{value:this.props.currentAnnounce.value,color:this.props.currentAnnounce.color, coinched:true}});
+    } else if (action == 'pass'){
+      socket.emit('announce',{announce:{value:0,color:null, coinched:false}});
+    } else if (action == 'announce'){
+      socket.emit('announce',{announce:{value:this.state.value,color:this.state.color, coinched:false}});
+    }
+    console.log(this.state);
+    this.setState({color:null, value:null});
+    this.props.handleAnnounce();
+  },
+  render: function(){
+    var availableAnnounce = [80,90,100,110,120,130,140,150,160,170,250,270];
+    var currentAnnounceVal=(this.props.currentAnnounce?this.props.currentAnnounce.value:0);
+    var self = this;
+    var possibleAnnounces=availableAnnounce.map(function(value,i) {
+      if (value>currentAnnounceVal){
+        return (
+          <li key={i}><a onClick={self.selectValue.bind(self, value)}>{value}</a></li>
+        );
+      } else {
+        return null;
+      }
+    });
+    return (
+      <div className={'col-xs-4 ' + this.props.className} id='announceBoard'>
+        <ul className='list-inline'>
+          {possibleAnnounces}
+        </ul>
+        <ul className='list-inline'>
+          <li><a onClick={ this.selectColor.bind(this, 'H') } >H</a></li>
+          <li><a onClick={ this.selectColor.bind(this, 'S') } >S</a></li>
+          <li><a onClick={ this.selectColor.bind(this, 'D') } >D</a></li>
+          <li><a onClick={ this.selectColor.bind(this, 'C') } >C</a></li>
+          <li><a onClick={ this.selectColor.bind(this, 'AT') } >AT</a></li>
+          <li><a onClick={ this.selectColor.bind(this, 'NT') } >NT</a></li>
+        </ul>
+        <ul className='list-inline'>
+          <li><a onClick={ this.handleSubmit.bind(this, 'announce')}>Announce</a></li>
+          <li><a onClick={ this.handleSubmit.bind(this, 'pass')}>Pass</a></li>
+          <li><a onClick={ this.handleSubmit.bind(this, 'coinche')}>Coinche</a></li>
+        </ul>
+
+      </div>
+    )
+  }
+});
 // var Tapis = React.createClass({
 //   //TODO: gérer le positionement (north est west south)
     

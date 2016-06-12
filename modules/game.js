@@ -8,6 +8,9 @@ module.exports = function(io, namespace, attendee, players) {
 	}
 	players.forEach(function(player){
 		attendees[player].cards=null;
+		attendees[player].dealer=false;
+		attendees[player].playedCard=null;
+		attendees[player].announce=null;
 	});
 	return {
 		namespace: namespace,
@@ -20,31 +23,32 @@ module.exports = function(io, namespace, attendee, players) {
 		current: {
 			dealer: null, //0
 			player: null, //1
-			announce: {},//{value: color: coinched: player:}
+			announce: {value:0,color:null,coinched:false,player:-1},//{value: color: coinched: player:}
 			trick: [],
 			belote: null
 		},
 		start: function(){
+			console.log(this.current);
 			//emit data to players
-			for (aId in this.attendee){
-				this.attendee[aId].global.updateStatus('INGAME', io);
-			};
 			io.to(this.namespace).emit('startGame', {});//todo: players, dealer, 
 			this.nextRound();
+			// this.emitUpdatePlayerInfo();
+			console.log(this.current);
 		},
 		announce: function(pName,announce){
 			var pIndex =this.players.indexOf(pName);
 			assert(pIndex != -1);
 			assert(pIndex == this.current.player);
-
-			assert(announce==null || announce.value > this.current.announce.value || announce.coinched);//todo: renforcer secu
-			io.to(this.namespace).emit('announced', {from: pName, announce:announce});//todo: add scores
-			if (announce != null && announce.coinched){
+			log('DEBUG', 'Player ' + pName + (announce==null?' passed ':' announced ' + announce.value + announce.color));
+			assert(announce.value==0 || announce.value > this.current.announce.value || announce.coinched);//todo: renforcer secu
+			if (announce.coinched){
 				this.coinche(pName,announce);
 				return;
 			}
-			if (announce==null){
-				if (this.getNextPlayer() == this.current.player){//if all passed
+			if (announce.value==0){//KO
+				announce.color=null;
+				if (this.getNextPlayer() == this.current.announce.player || (this.current.announce.player==-1 && this.getNextPlayer() == (this.current.dealer+1)%this.players.length)){//if all passed
+					console.log('CHOSENTRUMPS');
 					io.to(this.namespace).emit('chosenTrumps', this.current.announce);//todo: add scores
 
 					this.current.player = (this.current.dealer+1)%this.players.length;
@@ -52,8 +56,14 @@ module.exports = function(io, namespace, attendee, players) {
 					return;
 				}
 			} else {
-				this.current.announce = {value: announce.value, color: announce.color, player: pName}//todo: get index of pName
+				this.current.announce = {value: announce.value, color: announce.color, coinched: false, player: pName}//todo: get index of pName
 			}
+			this.attendee[pName].announce = {value: announce.value, color: announce.color}
+			io.to(this.namespace).emit('announced', {from: pName, announce:announce});//todo: add scores
+			// for (i in this.players){
+			// 	io.to(this.attendee[this.players[i]].global.socketid).emit('announce',{from: pName, announce:announce, players: this.playersFromViewOf(this.players[i])});
+			// }
+			this.emitUpdatePlayerInfo();
 			this.setNextPlayer();
 			io.to(this.getCurrentPlayerSocketId()).emit('announce', this.current.announce);
 		},
@@ -140,8 +150,12 @@ module.exports = function(io, namespace, attendee, players) {
 			return null;//todo: playable cards
 		},
 		setNextDealer: function(){
-			this.current.dealer = (this.current.dealer?Math.floor(Math.random*this.players.length):(this.current.dealer+1)%this.players.length);
+			if (this.current.dealer !== null)
+				this.attendee[this.players[this.current.dealer]].dealer=false;
+			// this.current.dealer = (this.current.dealer?Math.floor(Math.random*this.players.length):(this.current.dealer+1)%this.players.length);
+			this.current.dealer = (this.current.dealer==null?3:(this.current.dealer+1)%this.players.length);
 			this.current.player = (this.current.dealer+1)%this.players.length;
+			this.attendee[this.players[this.current.dealer]].dealer=true;
 			return this.current.player;
 		},
 		setNextPlayer: function(){
@@ -166,6 +180,7 @@ module.exports = function(io, namespace, attendee, players) {
 			this.setNextDealer();
 			this.distribute();
 			io.to(this.getCurrentPlayerSocketId()).emit('announce',{announce: this.current.announce});
+			this.emitUpdatePlayerInfo();
 		},
 		nextTrick: function(){
 			//this.current.player already set in playRound after winner computer
@@ -358,6 +373,26 @@ module.exports = function(io, namespace, attendee, players) {
 					}
 				}
 			});
+		},
+		playersFromViewOf: function(pName){
+			var pIndex = this.players.indexOf(pName);
+			assert(pIndex != -1);
+			var view = [{},{},{},{}];
+			for (i in this.players) {
+				var attendee=this.attendee[this.players[i]];
+				view[(i - pIndex + 4)%4] = {
+					name: this.players[i],
+					dealer: attendee.dealer,
+					playedCard: attendee.playedCard,
+					announce: attendee.announce
+				};
+			}
+			return view;
+		},
+		emitUpdatePlayerInfo: function(){
+			for (i in this.players){
+				io.to(this.attendee[this.players[i]].global.socketid).emit('updatePlayerInfo',{players: this.playersFromViewOf(this.players[i])});
+			}
 		}
 			/*** MANAGE RECONNECTION TO A GAME ***/
 		// reconnect: function(name){
