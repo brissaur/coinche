@@ -32,7 +32,7 @@ module.exports = function(host, io, connectedPlayers, rooms, hostsocket) {
 		},
 		invite: function(from,to){ //from=string, to=string
 			assert(this.attendee[from]);
-			assert(from==this.leader);
+			// assert(from==this.leader);
 			assert(connectedPlayers[to].status == 'AVAILABLE');
 			assert(!this.attendee[to]);
 

@@ -72,7 +72,7 @@ module.exports = function (io) {
 										rooms[newRoom.id] = newRoom;
 									} else {
 										assert(connectedPlayers[pName].roomid)
-										assert(rooms[connectedPlayers[pName].roomid].leader == pName);
+										// assert(rooms[connectedPlayers[pName].roomid].leader == pName);
 									}
 
 									// connectedPlayers[pName].roomid = newRoom.id;
