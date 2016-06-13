@@ -194,7 +194,10 @@ var PlayBoard = React.createClass({
       console.log('announced');
       console.log({data:data});
     });
-
+    // socket.on('play', function(data){
+    //   alert('play:' + data);
+    //   // self.setState({mustAnnounce:true, currentAnnounce:data.announce})
+    // });
   },
   handleAnnounce: function(){
     this.setState({mustAnnounce: false, currentAnnounce: null});

@@ -28,41 +28,65 @@ module.exports = function(io, namespace, attendee, players) {
 			belote: null
 		},
 		start: function(){
-			console.log(this.current);
+			// console.log(this.current);
 			//emit data to players
 			io.to(this.namespace).emit('startGame', {});//todo: players, dealer, 
 			this.nextRound();
 			// this.emitUpdatePlayerInfo();
-			console.log(this.current);
+			// console.log(this.current);
 		},
 		announce: function(pName,announce){
 			var pIndex =this.players.indexOf(pName);
 			assert(pIndex != -1);
 			assert(pIndex == this.current.player);
+			//todo: assert announce.value is authorized and announce.color is authorized
 			log('DEBUG', 'Player ' + pName + (announce==null?' passed ':' announced ' + announce.value + announce.color));
 			assert(announce.value==0 || announce.value > this.current.announce.value || announce.coinched);//todo: renforcer secu
+
+			//COINCHED
 			if (announce.coinched){
 				this.coinche(pName,announce);
 				return;
 			}
+
+			//PASS
 			if (announce.value==0){//KO
 				announce.color=null;
-				if (this.getNextPlayer() == this.current.announce.player || (this.current.announce.player==-1 && this.getNextPlayer() == (this.current.dealer+1)%this.players.length)){//if all passed
-					console.log('CHOSENTRUMPS');
-					io.to(this.namespace).emit('chosenTrumps', this.current.announce);//todo: add scores
+				//if end of announce turn
+				if (this.getNextPlayer() == this.current.announce.player){//if all passed
+					//if all passed = nextRound
+					if (this.current.announce.value==0){
+						//notify pass
+						io.to(this.namespace).emit('announced', {from: pName, announce:announce});//todo: add scores
+						this.emitUpdatePlayerInfo();
+						//notidy newGame
+						this.nextRound();
+						return;
+					} else {//
+						io.to(this.namespace).emit('chosenTrumps', this.current.announce.color);//todo: add scores
+						this.current.player = (this.current.dealer+1)%this.players.length;
+						// console.log(this);
+						// console.log(this.getPlayablecards());
+						// console.log(this);
+						var targetCards = this.getPlayablecards();
+						// console.log(targetCards);
+						io.to(this.getCurrentPlayerSocketId()).emit('play',{cards:targetCards});
+						return;
+					}
+					// console.log('CHOSENTRUMPS');
 
-					this.current.player = (this.current.dealer+1)%this.players.length;
-					io.to(this.getCurrentPlayerSocketId()).emit('play',this.getPlayableCards());
-					return;
 				}
+				if (this.current.announce.player==-1){//if first to talk and pass,note it down to know where the turn started
+					this.current.announce.player == this.players.indexOf(pName);
+				} 
+				//else if one passed but not last
+					//nothing to do: next player
 			} else {
-				this.current.announce = {value: announce.value, color: announce.color, coinched: false, player: pName}//todo: get index of pName
+			//Announced
+				this.current.announce = {value: announce.value, color: announce.color, coinched: false, player: this.players.indexOf(pName)}//todo: get index of pName
 			}
 			this.attendee[pName].announce = {value: announce.value, color: announce.color}
 			io.to(this.namespace).emit('announced', {from: pName, announce:announce});//todo: add scores
-			// for (i in this.players){
-			// 	io.to(this.attendee[this.players[i]].global.socketid).emit('announce',{from: pName, announce:announce, players: this.playersFromViewOf(this.players[i])});
-			// }
 			this.emitUpdatePlayerInfo();
 			this.setNextPlayer();
 			io.to(this.getCurrentPlayerSocketId()).emit('announce', this.current.announce);
@@ -77,7 +101,8 @@ module.exports = function(io, namespace, attendee, players) {
 			this.current.announce.coinched = true;
 
 			this.current.player = (this.current.dealer+1)%this.players.length;
-			io.to(this.getCurrentPlayerSocketId()).emit('play',this.getPlayableCards());
+			var targetCards = this.getPlayablecards();
+			io.to(this.getCurrentPlayerSocketId()).emit('play',{cards:targetCards});
 		},
 		play: function(pName,card){//card='AH'
 			var pIndex =this.players.indexOf(pName);
@@ -92,7 +117,8 @@ module.exports = function(io, namespace, attendee, players) {
 		playGame: function(pName, card){//card={value:,color:}
 			playRound(pName, card);
 			if (this.current.trick.length > 0){ 										// trick ongoing -> next player to play
-				io.to(this.getCurrentPlayerSocketId()).emit('play',{cards: this.getPlayablecards()});
+				var targetCards = this.getPlayablecards();
+				io.to(this.getCurrentPlayerSocketId()).emit('play',{cards:targetCards});
 			} else if (this.current.trickIndex == 8){									//round finished -> end or next round
 				//sys back to room
 				//todo: manage points
@@ -147,7 +173,7 @@ module.exports = function(io, namespace, attendee, players) {
 			return (this.getTeamNumber(pName1)==this.getTeamNumber(pName1));
 		},
 		getPlayablecards: function(){//return current player playable cards
-			return null;//todo: playable cards
+			return (this.attendee[this.players[this.current.player]].cards);//todo: playable cards
 		},
 		setNextDealer: function(){
 			if (this.current.dealer !== null)
@@ -184,7 +210,8 @@ module.exports = function(io, namespace, attendee, players) {
 		},
 		nextTrick: function(){
 			//this.current.player already set in playRound after winner computer
-			io.to(this.getCurrentPlayerSocketId()).emit('play',{cards: this.availableCards()});
+			var targetCards = this.availableCards();
+			io.to(this.getCurrentPlayerSocketId()).emit('play',{cards: targetCards});
 		},
 
 ///////////////////////////////////////////////////::
