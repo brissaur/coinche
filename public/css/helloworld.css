@@ -1,8 +1,72 @@
+/*COMMON*/
 .hidden{
 	display: none;
 }
 div{
 	border: solid thin;
+}
+p, span, div,li,a{
+	color:white;
+}
+button{
+	color:black;
+}
+/* HIGHLEVEL */
+body {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+}
+#topContainer{
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+#AppROOT{
+	/*display:flex;*/
+	/*flex-direction: column;*/
+	width: 100%;
+	height: 100%;
+}
+/* PLAYBOARD */
+.playBoard{
+	position: absolute;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	background-image: url('../images/tapis_kevin.png');
+	background-size: cover;
+	/*background-position: cover;*/
+}
+.playBoardContainer{
+	display:flex;
+	flex-direction: column;
+	width: 100%;
+	height: 100%;
+	
+}
+.playBoardContainer >*{
+	flex:1;
+}
+.youInviteThem{
+	position: absolute;
+	z-index: 10;
+	bottom: 0;
+	left: 0;
+	/*flex:1;*/
+
+}
+/*OTHER*/
+.theyInviteYou{
+	/*flex:1;*/
+	position: absolute;
+	z-index: 100;
+	bottom: 0;
+	right:0;
+}
+.startGameAndLeaveRoom{
+	position: absolute;
+	z-index:1000;
 }
 .card{
 	width:6%;

@@ -85,12 +85,14 @@ var CoincheApp = React.createClass({
   },
   render: function(){
     return (
-      <div>
+      <div id='AppROOT'>
         <YouInviteThem players={this.state.playersToInvite} className={!this.state.youInviteThem?'hidden':''}/>
         <TheyInviteYou inviteFrom={this.state.inviteFrom} className={!this.state.theyInviteYou?'hidden':''}/>
         <PlayBoard players={this.state.peopleInRoom} leaveRoom={this.handleLeaveRoom} className={!this.state.playBoard?'hidden':''}/>
-        <button onClick={this.handleStartGame} className={!this.state.startButton?'hidden':''}>Start Game</button>
-        <button onClick={this.handleLeaveRoom} className={!this.state.leaveButton?'hidden':''}>Leave Room</button>
+        <div className='startGameAndLeaveRoom'>
+          <button onClick={this.handleStartGame} className={'startGame ' + (!this.state.startButton?'hidden':'')}>Start Game</button>
+          <button onClick={this.handleLeaveRoom} className={'leaveRoom ' + (!this.state.leaveButton?'hidden':'')}>Leave Room</button>
+        </div>
       </div>
     );
   }
@@ -112,7 +114,7 @@ var TheyInviteYou = React.createClass({ //OK
     },
     render: function(){
       return (
-        <div className={(this.state.display?'':'hidden')}>
+        <div className={'theyInviteYou ' + (this.state.display?'':'hidden')}>
           <p> {this.props.inviteFrom} invited you to join his room!</p>
           <button onClick={this.acceptInvitation.bind(this,true)}>Accept</button>
           <button onClick={this.acceptInvitation.bind(this,false)}>Refuse</button>
@@ -155,7 +157,7 @@ var TheyInviteYou = React.createClass({ //OK
         );
       });
       return (
-        <div className={this.props.className}>
+        <div className={'youInviteThem ' + this.props.className}>
           <button id="inviteFriendsButton" className={!this.state.inviteFriends?'hidden':''} type='button' onClick={this.handleInviteFriends}> Invite Friends For A Game</button> 
           <div id="inviteFriendsBoard" className={!this.state.inviteFriendsBoard?'hidden':''}>
             <ul> {players}</ul>
@@ -208,27 +210,29 @@ var PlayBoard = React.createClass({
 //   },
   render: function(){
     return(
-      <div className={this.props.className}>
-        <div className={'row'}>
-          <div className='col-xs-offset-4 col-xs-4'>
-            <PlayerSpace place='NORTH' playerIndex={2} player={this.props.players[2]}/>
+      <div className={'playBoard ' + this.props.className}>
+        <div className={'playBoardContainer'}>
+          <div className={'row'}>
+            <div className='col-xs-offset-4 col-xs-4'>
+              <PlayerSpace place='NORTH' playerIndex={2} player={this.props.players[2]}/>
+            </div>
           </div>
+          <div className={'row'}>
+            <div className='col-xs-4'>
+              <PlayerSpace place='WEST' playerIndex={1} player={this.props.players[1]}/>
+            </div>
+            <AnnounceBoard className={this.state.mustAnnounce?'':'hidden'} currentAnnounce={this.state.currentAnnounce} handleAnnounce={this.handleAnnounce}/>
+            <div className={(this.state.mustAnnounce?'':'col-xs-offset-4 ') + 'col-xs-4'}>
+              <PlayerSpace place='EAST' playerIndex={3} player={this.props.players[3]}/>
+            </div>
+          </div>
+          <div className={'row'}>
+            <div className='col-xs-offset-4 col-xs-4'>
+              <PlayerSpace place='SOUTH' playerIndex={0} player={this.props.players[0]}/>
+            </div>
+          </div>
+          <MySpace />
         </div>
-        <div className={'row'}>
-          <div className='col-xs-4'>
-            <PlayerSpace place='WEST' playerIndex={1} player={this.props.players[1]}/>
-          </div>
-          <AnnounceBoard className={this.state.mustAnnounce?'':'hidden'} currentAnnounce={this.state.currentAnnounce} handleAnnounce={this.handleAnnounce}/>
-          <div className={(this.state.mustAnnounce?'':'col-xs-offset-4 ') + 'col-xs-4'}>
-            <PlayerSpace place='EAST' playerIndex={3} player={this.props.players[3]}/>
-          </div>
-        </div>
-        <div className={'row'}>
-          <div className='col-xs-offset-4 col-xs-4'>
-            <PlayerSpace place='SOUTH' playerIndex={0} player={this.props.players[0]}/>
-          </div>
-        </div>
-        <MySpace />
       </div>
         // <AnnounceBoard currentAnnounce={this.state.currentAnnounce} handleAnnounce={this.handleAnnounce}/>
         // <Tapis cards={this.state.playedCards}/>
