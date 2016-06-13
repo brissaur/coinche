@@ -89,7 +89,7 @@ module.exports = function(io, namespace, attendee, players) {
 			io.to(this.namespace).emit('announced', {from: pName, announce:announce});//todo: add scores
 			this.emitUpdatePlayerInfo();
 			this.setNextPlayer();
-			io.to(this.getCurrentPlayerSocketId()).emit('announce', this.current.announce);
+			io.to(this.getCurrentPlayerSocketId()).emit('announce', {announce:this.current.announce});
 		},
 		coinche: function(pName,announce){
 			var pIndex =this.players.indexOf(pName);
