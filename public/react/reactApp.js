@@ -3,7 +3,7 @@ var socket = io();
 var CoincheApp = React.createClass({
   getInitialState: function(){
     return {youInviteThem: true, playersToInvite:[], theyInviteYou: false, inviteFrom: null, playBoard: true, 
-      peopleInRoom:[{},{},{},{}], inRoom: false}
+      peopleInRoom:[{},{},{},{}], inRoom: false, inGame: false}
   },
   componentDidMount: function() {
     var self=this;
@@ -60,6 +60,7 @@ var CoincheApp = React.createClass({
     });
     socket.on('startGame', function(data){
       console.log('startGame');
+      self.setState({inGame:true});
     });
 
     socket.on('updatePlayerInfo', function(data){
@@ -78,7 +79,7 @@ var CoincheApp = React.createClass({
   },
   handleLeaveRoom: function(){
     socket.emit('leaveRoom', {});
-    this.setState({peopleInRoom:[{},{},{},{}], inRoom:false})
+    this.setState({peopleInRoom:[{},{},{},{}], inRoom:false, inGame: false})
     // alert('leaving room...');
   },
   handleStartGame: function(){
@@ -87,10 +88,10 @@ var CoincheApp = React.createClass({
   render: function(){
     return (
       <div id='AppROOT'>
-        <YouInviteThem players={this.state.playersToInvite} className={!this.state.youInviteThem?'hidden':''}/>
+        <YouInviteThem inGame={this.state.inGame} players={this.state.playersToInvite} className={!this.state.youInviteThem?'hidden':''}/>
         <TheyInviteYou inviteFrom={this.state.inviteFrom} className={!this.state.theyInviteYou?'hidden':''}/>
-        <PlayBoard inRoom={this.state.inRoom} players={this.state.peopleInRoom} leaveRoom={this.handleLeaveRoom} className={!this.state.playBoard?'hidden':''}/>
-          <button onClick={this.handleStartGame} className={'startGame ' + (!this.state.startButton?'hidden':'')}>Start Game</button>
+        <PlayBoard inGame={this.state.inGame} inRoom={this.state.inRoom} players={this.state.peopleInRoom} leaveRoom={this.handleLeaveRoom} className={!this.state.playBoard?'hidden':''}/>
+        <button onClick={this.handleStartGame} className={'startGame ' + (!this.state.startButton?'hidden':'')}>Start Game</button>
       </div>
     );
         // <div className='startGameAndLeaveRoom'>
@@ -158,7 +159,7 @@ var TheyInviteYou = React.createClass({ //OK
         );
       });
       return (
-        <div className={'youInviteThem ' + this.props.className}>
+        <div className={'youInviteThem ' + this.props.className + ' ' + (this.props.inGame?'hidden':'')}>
           <button id="inviteFriendsButton" className={!this.state.inviteFriends?'hidden':''} type='button' onClick={this.handleInviteFriends}> Invite Friends For A Game</button> 
           <div id="inviteFriendsBoard" className={!this.state.inviteFriendsBoard?'hidden':''}>
             <ul> {players}</ul>
@@ -204,21 +205,21 @@ var PlayBoard = React.createClass({
         <div className={'playBoardContainer'}>
           <div className={'row'}>
             <div className='col-xs-offset-4 col-xs-4'>
-              <PlayerSpace place='NORTH' playerIndex={2} player={this.props.players[2]}/>
+              <PlayerSpace inGame={this.props.inGame} place='NORTH' playerIndex={2} player={this.props.players[2]}/>
             </div>
           </div>
           <div className={'row'}>
             <div className='col-xs-4'>
-              <PlayerSpace place='WEST' playerIndex={1} player={this.props.players[1]}/>
+              <PlayerSpace inGame={this.props.inGame} place='WEST' playerIndex={1} player={this.props.players[1]}/>
             </div>
             <AnnounceBoard className={this.state.mustAnnounce?'':'hidden'} currentAnnounce={this.state.currentAnnounce} handleAnnounce={this.handleAnnounce}/>
             <div className={(this.state.mustAnnounce?'':'col-xs-offset-4 ') + 'col-xs-4'}>
-              <PlayerSpace place='EAST' playerIndex={3} player={this.props.players[3]}/>
+              <PlayerSpace inGame={this.props.inGame} place='EAST' playerIndex={3} player={this.props.players[3]}/>
             </div>
           </div>
           <div className={'row'}>
             <div className='col-xs-offset-4 col-xs-4'>
-              <PlayerSpace place='SOUTH' playerIndex={0} player={this.props.players[0]}/>
+              <PlayerSpace inGame={this.props.inGame} place='SOUTH' playerIndex={0} player={this.props.players[0]}/>
             </div>
           </div>
           <MySpace cards={this.state.myCards}/>
@@ -243,7 +244,7 @@ var PlayerSpace = React.createClass({
         <p> {this.props.place} : {this.props.player.name} </p>
         <div className={this.props.player.announce?'':'hidden'}>{(this.props.player.announce?'Announce:' + (this.props.player.announce.value==0?'Pass':this.props.player.announce.value + this.props.player.announce.color):'')}</div>
         <div className={this.props.player.dealer?'':'hidden'}>DEALER</div>
-        <button className={this.props.playerIndex==0?'hidden':''} onClick={this.handleSwap.bind(this, this.props.playerIndex)}>Swap Place</button>
+        <button className={this.props.playerIndex==0||this.props.inGame?'hidden':''} onClick={this.handleSwap.bind(this, this.props.playerIndex)}>Swap Place</button>
       </div>
     )
   }
