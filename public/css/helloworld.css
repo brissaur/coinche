@@ -56,6 +56,19 @@ body {
 	/*flex:1;*/
 
 }
+/* CARDS */
+.mySpace{
+	display:flex;
+	padding-right: 10%;
+	padding-left: 10%;
+}
+.card{
+}
+.cardToBePlayed{
+	flex:1;
+	max-width: 10%;
+	align-content: center;
+}
 /*OTHER*/
 .theyInviteYou{
 	/*flex:1;*/
@@ -75,9 +88,6 @@ body {
 	z-index:1000;
 }
 .card{
-	width:6%;
-	height:6%;
-}
-.cardToBePlayed{
-
+/*	width:6%;
+	height:6%;*/
 }

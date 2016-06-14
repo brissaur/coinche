@@ -331,15 +331,14 @@ var AnnounceBoard = React.createClass({
 var MySpace = React.createClass({
   render: function(){
     var cards=this.props.cards.map(function(card,i) {
+    // var cards=['AH','7S'].map(function(card,i) {
       return (
         <Card key={i} card={card} className='card cardToBePlayed'/>
       );
     });
     return (
-        <div className={'row'}>
-          <div className='col-xs-12' id='yourHand'>
+        <div className={'row mySpace'}>
             {cards}
-          </div>
         </div>
     )
   }
