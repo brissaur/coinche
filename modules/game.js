@@ -40,7 +40,7 @@ module.exports = function(io, namespace, attendee, players) {
 			assert(pIndex != -1);
 			assert(pIndex == this.current.player);
 			//todo: assert announce.value is authorized and announce.color is authorized
-			log('DEBUG', 'Player ' + pName + (announce==null?' passed ':' announced ' + announce.value + announce.color));
+			log('DEBUG', 'Player ' + pName + (announce==null?' passed ':(announce.coinched?' coinched!': ' announced ' + announce.value + announce.color)));
 			assert(announce.value==0 || announce.value > this.current.announce.value || announce.coinched);//todo: renforcer secu
 
 			//COINCHED
@@ -48,10 +48,13 @@ module.exports = function(io, namespace, attendee, players) {
 				this.coinche(pName,announce);
 				return;
 			}
-
 			//PASS
 			if (announce.value==0){//KO
 				announce.color=null;
+				//if first to speak: note player in case all player gonna pass
+				if (this.current.announce.player==-1){//if first to talk and pass,note it down to know where the turn started
+					this.current.announce.player = this.players.indexOf(pName);
+				} 
 				//if end of announce turn
 				if (this.getNextPlayer() == this.current.announce.player){//if all passed
 					//if all passed = nextRound
@@ -60,25 +63,19 @@ module.exports = function(io, namespace, attendee, players) {
 						io.to(this.namespace).emit('announced', {from: pName, announce:announce});//todo: add scores
 						this.emitUpdatePlayerInfo();
 						//notidy newGame
+						this.cleanPlayerAnnounce();
 						this.nextRound();
 						return;
 					} else {//
 						io.to(this.namespace).emit('chosenTrumps', this.current.announce.color);//todo: add scores
 						this.current.player = (this.current.dealer+1)%this.players.length;
-						// console.log(this);
-						// console.log(this.getPlayablecards());
-						// console.log(this);
 						var targetCards = this.getPlayablecards();
-						// console.log(targetCards);
 						io.to(this.getCurrentPlayerSocketId()).emit('play',{cards:targetCards});
+						this.cleanPlayerAnnounce();
 						return;
 					}
-					// console.log('CHOSENTRUMPS');
 
 				}
-				if (this.current.announce.player==-1){//if first to talk and pass,note it down to know where the turn started
-					this.current.announce.player == this.players.indexOf(pName);
-				} 
 				//else if one passed but not last
 					//nothing to do: next player
 			} else {
@@ -99,8 +96,10 @@ module.exports = function(io, namespace, attendee, players) {
 			assert(!this.sameTeam(pName,this.current.announce.player));
 
 			this.current.announce.coinched = true;
-
+			//todo: emit 'coinched'!!
 			this.current.player = (this.current.dealer+1)%this.players.length;
+			this.cleanPlayerAnnounce();
+			this.updatePlayerInfo();
 			var targetCards = this.getPlayablecards();
 			io.to(this.getCurrentPlayerSocketId()).emit('play',{cards:targetCards});
 		},
@@ -170,7 +169,7 @@ module.exports = function(io, namespace, attendee, players) {
 			return (this.players.indexOf(pName)%2);
 		},
 		sameTeam: function(pName1,pName2){
-			return (this.getTeamNumber(pName1)==this.getTeamNumber(pName1));
+			return (this.getTeamNumber(pName1)==this.getTeamNumber(pName2));
 		},
 		getPlayablecards: function(){//return current player playable cards
 			return (this.attendee[this.players[this.current.player]].cards);//todo: playable cards
@@ -203,6 +202,7 @@ module.exports = function(io, namespace, attendee, players) {
 			};
 		},
 		nextRound: function(){
+			this.current.announce = {value:0,color:null,coinched:false,player:-1};
 			this.setNextDealer();
 			this.distribute();
 			io.to(this.getCurrentPlayerSocketId()).emit('announce',{announce: this.current.announce});
@@ -224,7 +224,8 @@ module.exports = function(io, namespace, attendee, players) {
 
 			var colorPlayedCards = this.cardsOfColor(thisPlayerCards,this.colorPlayed());
 			//IF HE HAS THE COLOR
-			if (colorPlayedCards.length > 0){
+			if (colorPlayedCards.length
+			 > 0){
 				//AND ORDER LIKE TRUMPS
 				if ((this.colorPlayed()==this.current.announce.color) || this.current.announce.color == 'AT'){
 					//MANAGE TRUMP ORDER
@@ -420,6 +421,12 @@ module.exports = function(io, namespace, attendee, players) {
 			for (i in this.players){
 				io.to(this.attendee[this.players[i]].global.socketid).emit('updatePlayerInfo',{players: this.playersFromViewOf(this.players[i])});
 			}
+		},
+		cleanPlayerAnnounce: function(){
+			for (i in this.players){
+				this.attendee[this.players[i]].announce=null;
+			}
+
 		}
 			/*** MANAGE RECONNECTION TO A GAME ***/
 		// reconnect: function(name){

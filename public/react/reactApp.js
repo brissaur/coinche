@@ -63,6 +63,7 @@ var CoincheApp = React.createClass({
     });
 
     socket.on('updatePlayerInfo', function(data){
+      console.log(data.players);
       self.setState({peopleInRoom: data.players});
     });
 
@@ -177,37 +178,20 @@ var PlayBoard = React.createClass({
 //   //props:
 //   //state: players[0...3]
   getInitialState: function(){
-    return {mustAnnounce: false, currentAnnounce: null, players: []
-//       players: [{name: 'a', announce:'80H', dealer:true, swapButton:true}, {name: 'b', announce:'', dealer:false, swapButton:false}, {name: 'c', announce:'', dealer:false, swapButton:false}, {name: 'd', announce:'', dealer:false, swapButton:false}],
-//       cards: [{value:'7',color:'H', playable:true}, {value:'9',color:'H', playable:true}, {value:'J',color:'H', playable:true}],
-//       playedCards: [{value:'7',color:'S', playable:true}, {value:'9',color:'S', playable:true}],
-//       currentAnnounce: {value:'100',color:'AT'}
-          // null
-    };
+    return { mustAnnounce: false, currentAnnounce: null, players: [] };
   },
   componentDidMount: function(){
     var self = this;
     socket.on('announce', function(data){
-      console.log('announce');
-      console.log({data:data});
       self.setState({mustAnnounce:true, currentAnnounce:data.announce})
     });
     socket.on('announced', function(data){
-      console.log('announced');
-      console.log({data:data});
     });
-    // socket.on('play', function(data){
-    //   alert('play:' + data);
-    //   // self.setState({mustAnnounce:true, currentAnnounce:data.announce})
-    // });
   },
   handleAnnounce: function(){
     this.setState({mustAnnounce: false, currentAnnounce: null});
   },
 
-//   handleAnnounce: function(){
-//     alert('announce');
-//   },
   render: function(){
     return(
       <div className={'playBoard ' + this.props.className}>
@@ -249,7 +233,7 @@ var PlayerSpace = React.createClass({
     return (
       <div id={this.props.place} className={this.props.player.name?'':'hidden'}>
         <p> {this.props.place} : {this.props.player.name} </p>
-        <div className={this.props.player.announce?'':'hidden'}>{(this.props.player.announce?'Announce: ' + this.props.player.announce.value + this.props.player.announce.color:'')}</div>
+        <div className={this.props.player.announce?'':'hidden'}>{(this.props.player.announce?'Announce:' + (this.props.player.announce.value==0?'Pass':this.props.player.announce.value + this.props.player.announce.color):'')}</div>
         <div className={this.props.player.dealer?'':'hidden'}>DEALER</div>
         <button className={this.props.playerIndex==0?'hidden':''} onClick={this.handleSwap.bind(this, this.props.playerIndex)}>Swap Place</button>
       </div>
@@ -342,8 +326,8 @@ var MySpace = React.createClass({
   componentDidMount: function() {
     var self = this;
     socket.on('distribute', function(data){
-      console.log('distribute');
-      console.log({data:data});
+      // console.log('distribute');
+      // console.log({data:data});
       self.setState({cards:data.cards});
     });
   },
