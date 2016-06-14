@@ -305,7 +305,7 @@ var AnnounceBoard = React.createClass({
         <ul className='list-inline'>
           <li><a onClick={ this.handleSubmit.bind(this, 'announce')}>Announce</a></li>
           <li><a onClick={ this.handleSubmit.bind(this, 'pass')}>Pass</a></li>
-          <li><a onClick={ this.handleSubmit.bind(this, 'coinche')}>Coinche</a></li>
+          <li className={!this.props.currentAnnounce || this.props.currentAnnounce.coincheEnabled?'':'hidden'}><a onClick={ this.handleSubmit.bind(this, 'coinche')}>Coinche</a></li>
         </ul>
 
       </div>

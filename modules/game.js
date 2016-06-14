@@ -86,7 +86,14 @@ module.exports = function(io, namespace, attendee, players) {
 			io.to(this.namespace).emit('announced', {from: pName, announce:announce});//todo: add scores
 			this.emitUpdatePlayerInfo();
 			this.setNextPlayer();
-			io.to(this.getCurrentPlayerSocketId()).emit('announce', {announce:this.current.announce});
+			console.log(this.current.announce.value);
+			console.log(this.players[this.current.announce.player]);
+			console.log(this.players[this.current.player]);
+			io.to(this.getCurrentPlayerSocketId()).emit('announce', {
+				announce:{value:this.current.announce.value,
+				color:this.current.announce.color,
+				coincheEnabled: this.current.announce.value!=0 && !this.sameTeam(this.players[this.current.announce.player],this.players[this.current.player])}
+			});
 		},
 		coinche: function(pName,announce){
 			var pIndex =this.players.indexOf(pName);
@@ -99,7 +106,7 @@ module.exports = function(io, namespace, attendee, players) {
 			//todo: emit 'coinched'!!
 			this.current.player = (this.current.dealer+1)%this.players.length;
 			this.cleanPlayerAnnounce();
-			this.updatePlayerInfo();
+			this.emitUpdatePlayerInfo();
 			var targetCards = this.getPlayablecards();
 			io.to(this.getCurrentPlayerSocketId()).emit('play',{cards:targetCards});
 		},
@@ -205,7 +212,7 @@ module.exports = function(io, namespace, attendee, players) {
 			this.current.announce = {value:0,color:null,coinched:false,player:-1};
 			this.setNextDealer();
 			this.distribute();
-			io.to(this.getCurrentPlayerSocketId()).emit('announce',{announce: this.current.announce});
+			io.to(this.getCurrentPlayerSocketId()).emit('announce',{announce: {value:this.current.announce.value, color:this.current.announce.color, coincheEnabled: false}});
 			this.emitUpdatePlayerInfo();
 		},
 		nextTrick: function(){
