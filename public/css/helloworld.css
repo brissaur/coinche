@@ -5,12 +5,12 @@
 div{
 	border: solid thin;
 }
-p, span, div,li,a{
+/*p, span, div,li,a{
 	color:white;
 }
 button{
 	color:black;
-}
+}*/
 /* HIGHLEVEL */
 body {
 	position: absolute;
@@ -34,8 +34,8 @@ body {
 	top: 0;
 	width: 100%;
 	height: 100%;
-	background-image: url('../images/tapis_kevin.png');
-	background-size: cover;
+	/*background-image: url('../images/tapis_kevin.png');*/
+	/*background-size: cover;*/
 	/*background-position: cover;*/
 }
 .playBoardContainer{
@@ -64,8 +64,14 @@ body {
 	bottom: 0;
 	right:0;
 }
-.startGameAndLeaveRoom{
+.startGame{
 	position: absolute;
+	z-index:1000;
+}
+.leaveRoom{
+	position: absolute;
+	top: 0;
+	right:0;
 	z-index:1000;
 }
 .card{

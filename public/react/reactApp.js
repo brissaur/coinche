@@ -3,7 +3,7 @@ var socket = io();
 var CoincheApp = React.createClass({
   getInitialState: function(){
     return {youInviteThem: true, playersToInvite:[], theyInviteYou: false, inviteFrom: null, playBoard: true, 
-      peopleInRoom:[{},{},{},{}], leaveButton: false}
+      peopleInRoom:[{},{},{},{}], inRoom: false}
   },
   componentDidMount: function() {
     var self=this;
@@ -20,7 +20,7 @@ var CoincheApp = React.createClass({
     socket.on('joinRoom', function(context){
       // alert('joinROom');
       console.log(context);
-      self.setState({peopleInRoom: context.players, leaveButton: true});
+      self.setState({peopleInRoom: context.players, inRoom: true});
     });
     socket.on('join',function(data){
       // console.log('join');
@@ -78,7 +78,7 @@ var CoincheApp = React.createClass({
   },
   handleLeaveRoom: function(){
     socket.emit('leaveRoom', {});
-    this.setState({peopleInRoom:[{},{},{},{}], leaveButton:false})
+    this.setState({peopleInRoom:[{},{},{},{}], inRoom:false})
     // alert('leaving room...');
   },
   handleStartGame: function(){
@@ -89,13 +89,13 @@ var CoincheApp = React.createClass({
       <div id='AppROOT'>
         <YouInviteThem players={this.state.playersToInvite} className={!this.state.youInviteThem?'hidden':''}/>
         <TheyInviteYou inviteFrom={this.state.inviteFrom} className={!this.state.theyInviteYou?'hidden':''}/>
-        <PlayBoard players={this.state.peopleInRoom} leaveRoom={this.handleLeaveRoom} className={!this.state.playBoard?'hidden':''}/>
-        <div className='startGameAndLeaveRoom'>
+        <PlayBoard inRoom={this.state.inRoom} players={this.state.peopleInRoom} leaveRoom={this.handleLeaveRoom} className={!this.state.playBoard?'hidden':''}/>
           <button onClick={this.handleStartGame} className={'startGame ' + (!this.state.startButton?'hidden':'')}>Start Game</button>
-          <button onClick={this.handleLeaveRoom} className={'leaveRoom ' + (!this.state.leaveButton?'hidden':'')}>Leave Room</button>
-        </div>
       </div>
     );
+        // <div className='startGameAndLeaveRoom'>
+          // <button onClick={this.handleLeaveRoom} className={'leaveRoom ' + (!this.state.leaveButton?'hidden':'')}>Leave Room</button>
+        // </div>
   }
 });
 var TheyInviteYou = React.createClass({ //OK
@@ -178,7 +178,7 @@ var PlayBoard = React.createClass({
 //   //props:
 //   //state: players[0...3]
   getInitialState: function(){
-    return { mustAnnounce: false, currentAnnounce: null, players: [] };
+    return { mustAnnounce: false, currentAnnounce: null,myCards: []};
   },
   componentDidMount: function(){
     var self = this;
@@ -187,11 +187,17 @@ var PlayBoard = React.createClass({
     });
     socket.on('announced', function(data){
     });
+    socket.on('distribute', function(data){
+      self.setState({myCards:data.cards});
+    });
   },
   handleAnnounce: function(){
     this.setState({mustAnnounce: false, currentAnnounce: null});
   },
-
+  handleLeaveRoom: function(){
+    this.setState({mustAnnounce:false, currentAnnounce:null,myCards: []});
+    this.props.leaveRoom();
+  },
   render: function(){
     return(
       <div className={'playBoard ' + this.props.className}>
@@ -215,9 +221,11 @@ var PlayBoard = React.createClass({
               <PlayerSpace place='SOUTH' playerIndex={0} player={this.props.players[0]}/>
             </div>
           </div>
-          <MySpace />
+          <MySpace cards={this.state.myCards}/>
         </div>
+        <button onClick={this.handleLeaveRoom} className={'leaveRoom ' + (this.props.inRoom?'':'hidden')}>Leave Room</button>
       </div>
+
         // <AnnounceBoard currentAnnounce={this.state.currentAnnounce} handleAnnounce={this.handleAnnounce}/>
         // <Tapis cards={this.state.playedCards}/>
         // <h1> You are on the PlayBoard </h1>
@@ -320,19 +328,8 @@ var AnnounceBoard = React.createClass({
 //   }
 // });
 var MySpace = React.createClass({
-  getInitialState: function(){
-    return {cards: []}
-  },
-  componentDidMount: function() {
-    var self = this;
-    socket.on('distribute', function(data){
-      // console.log('distribute');
-      // console.log({data:data});
-      self.setState({cards:data.cards});
-    });
-  },
   render: function(){
-    var cards=this.state.cards.map(function(card,i) {
+    var cards=this.props.cards.map(function(card,i) {
       return (
         <Card key={i} card={card} className='card cardToBePlayed'/>
       );
@@ -346,6 +343,7 @@ var MySpace = React.createClass({
     )
   }
 });
+
 var Card = React.createClass({
   render: function(){
     return (
