@@ -70,10 +70,6 @@ var CoincheApp = React.createClass({
 
 
 
-    socket.on('play', function(data){
-      console.log('play');
-      console.log({data:data});
-    });
 
       
   },
@@ -179,7 +175,7 @@ var PlayBoard = React.createClass({
 //   //props:
 //   //state: players[0...3]
   getInitialState: function(){
-    return { mustAnnounce: false, currentAnnounce: null,myCards: []};
+    return { mustAnnounce: false, currentAnnounce: null,myCards: [],myTurnToPlay: false};
   },
   componentDidMount: function(){
     var self = this;
@@ -190,6 +186,11 @@ var PlayBoard = React.createClass({
     });
     socket.on('distribute', function(data){
       self.setState({myCards:data.cards});
+    });
+    socket.on('play', function(data){
+      console.log('play');
+      self.setState({ myTurnToPlay: true})
+      console.log({data:data});
     });
   },
   handleAnnounce: function(){
@@ -219,7 +220,7 @@ var PlayBoard = React.createClass({
           </div>
           <div className={'row'}>
             <div className='col-xs-offset-4 col-xs-4'>
-              <PlayerSpace inGame={this.props.inGame} place='SOUTH' playerIndex={0} player={this.props.players[0]}/>
+              <PlayerSpace myTurnToPlay={this.state.myTurnToPlay} inGame={this.props.inGame} place='SOUTH' playerIndex={0} player={this.props.players[0]}/>
             </div>
           </div>
           <MySpace cards={this.state.myCards}/>
@@ -242,6 +243,7 @@ var PlayerSpace = React.createClass({
     return (
       <div id={this.props.place} className={this.props.player.name?'':'hidden'}>
         <p> {this.props.place} : {this.props.player.name} </p>
+        <div className={this.props.myTurnToPlay?'':'hidden'}>Your turn to play!</div>
         <div className={this.props.player.announce?'':'hidden'}>{(this.props.player.announce?'Announce:' + (this.props.player.announce.value==0?'Pass':this.props.player.announce.value + this.props.player.announce.color):'')}</div>
         <div className={this.props.player.dealer?'':'hidden'}>DEALER</div>
         <button className={this.props.playerIndex==0||this.props.inGame?'hidden':''} onClick={this.handleSwap.bind(this, this.props.playerIndex)}>Swap Place</button>
