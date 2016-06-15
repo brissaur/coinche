@@ -191,7 +191,7 @@ module.exports = function(host, io, connectedPlayers, rooms, hostsocket) {
 			// todo: issue if dealer left
 				if (this.game){
 					console.log('disconnect from game');
-					// this.game.disconnection(from);
+					this.game.disconnection(from);
 				} else {
 					if (this.nbPlayers() == 3){
 						if (oldLeader == this.leader){
@@ -228,7 +228,7 @@ module.exports = function(host, io, connectedPlayers, rooms, hostsocket) {
 				console.log(this.nbPlayers());
 				if (this.game){
 					console.log('reconnect to game');
-					// this.game.reconnection(from);
+					this.game.reconnection(from);
 				} else {
 					if (this.nbPlayers() == 4){
 						io.to(this.attendee[this.leader].socketid).emit('startEnabled');

@@ -10,7 +10,7 @@ module.exports = function(name, socketid){
 			this.status = status;
 			// io.to('roomid').emit('updateStatus', {from: this.name, status: status});
 			// io.to('/').emit('updateStatus', {from: this.name, status: status});
-			io.emit('updateStatus', {from: this.name, status: status});
+			io.emit('updateStatus', {from: this.name, status: status});//Todo: not send to the guy;
 		}
 	}
 }

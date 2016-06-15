@@ -35,6 +35,35 @@ module.exports = function(io, namespace, attendee, players) {
 			// this.emitUpdatePlayerInfo();
 			// console.log(this.current);
 		},
+		disconnection: function(from){
+			//
+			io.to(this.namespace).emit('gameDisconnection',{from:from});
+		},
+		reconnection: function(from){
+			var player = this.attendee[from];
+			//emit playerinfos
+			io.to(player.global.socketid).emit('startGame', {});//todo: players, dealer, 
+			this.emitUpdatePlayerInfo();
+			//emit cards
+			io.to(player.global.socketid).emit('distribute',{cards: player.cards});
+			//emit if his turn to play
+			var pIndex = this.players.indexOf(from);
+			if (this.current.player == pIndex){
+				if (true){
+					var coincheEnabled = !(this.current.announce.player == -1) && 
+										this.current.announce.value!=0 && 
+										!this.sameTeam(this.players[this.current.announce.player],this.players[this.current.player]);
+					io.to(this.getCurrentPlayerSocketId()).emit('announce', {
+						announce:{value:this.current.announce.value,
+						color:this.current.announce.color,
+						coincheEnabled: coincheEnabled}
+					});
+
+				} else {
+				}
+
+			}
+		},
 		announce: function(pName,announce){
 			var pIndex =this.players.indexOf(pName);
 			assert(pIndex != -1);
