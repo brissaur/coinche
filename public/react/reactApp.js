@@ -1,4 +1,5 @@
 var socket = io();
+console.log(socket);
 
 var CoincheApp = React.createClass({
   getInitialState: function(){
