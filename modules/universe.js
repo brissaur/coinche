@@ -30,19 +30,40 @@ module.exports = function (io) {
         		log('info',"User '" + pName + "' connected on socket "+socket.id);
 						           
 								if (connectedPlayers[pName]){
+									// console.log(pName + ' was connected');
+									// console.log(connectedPlayers[pName]);
 									connectedPlayers[pName].socketid = socket.id;
-									connectedPlayers[pName].status = 'AVAILABLE';
+									if (connectedPlayers[pName].roomid){
+										//RECONNECTION TO ROOM
+										assert(rooms[connectedPlayers[pName].roomid]);
+										// console.log(pName + ' reconnection')
+										connectedPlayers[pName].status = 'INROOM';
+										rooms[connectedPlayers[pName].roomid].reconnection(pName, socket);
+
+
+									} else {
+										connectedPlayers[pName].status = 'AVAILABLE';
+										
+									}
 								} else {
+									console.log(pName + ' was not connected');
 									connectedPlayers[pName] = new Player(pName, socket.id);
 								}
 								// socket.broadcast.emit('connection', {from:pName, connectedUsers:getConnectedUsers(pName)});
-								for (name in connectedPlayers){
-									if (name != pName)
-										io.to(connectedPlayers[name].socketid).emit('newConnection',  {from:pName, connectedUsers:getConnectedUsers(name)});
+								if (connectedPlayers[pName].status == 'AVAILABLE'){
+									for (name in connectedPlayers){
+										if (name != pName)
+											io.to(connectedPlayers[name].socketid).emit('newConnection',  {from:pName, connectedUsers:getConnectedUsers(name)});
+									}
+									socket.emit('hello', {name: pName});
 								}
-								socket.emit('hello', {name: pName});
 								socket.on('disconnect', function(){
+									console.log(pName + ' is disconnecting...');
 									connectedPlayers[pName].status = 'DISCONNECTED';
+									if (connectedPlayers[pName].roomid){
+										assert(rooms[connectedPlayers[pName].roomid]);
+										rooms[connectedPlayers[pName].roomid].disconnection(pName);
+									}
 									// if(connectedPlayers[pName].roomid)
 									// 	rooms[roomid].players[pName].socketid=null;
 									//broadcast to room

@@ -163,6 +163,79 @@ module.exports = function(host, io, connectedPlayers, rooms, hostsocket) {
 			assert(this.attendee[from]);
 			io.to(this.id).emit('chat',{from: from, msg: msg});
 		},
+		disconnection: function(from){
+			assert(this.attendee[from]);
+			var pIndex = this.players.indexOf(from);
+			assert(pIndex != -1);//todo: pas vrai pour els spectators
+
+			this.availablePlayerId.push(pIndex);
+			if(this.attendee.length==1){//todo
+
+			}
+			for(var i in this.players){
+				if (this.players[i] == from)
+					this.players[i] = null; //todo: check how to remove elem from array
+			}
+			for (var i in this.players){
+				var pName=this.players[i];
+				if (pName)
+					io.to(attendee[pName].socketid).emit('leaveRoom',{from: from, players: this.playersFromViewOf(pName)});
+			}
+
+			var oldLeader = this.leader;
+			if (from==this.leader){
+				this.leader=this.players[this.players.indexOf(from)+1%this.players.length]; //todo right function getIndex
+				io.to(this.id).emit('newLeader',{from: this.leader});
+			}
+
+			// todo: issue if dealer left
+				if (this.game){
+					console.log('disconnect from game');
+					// this.game.disconnection(from);
+				} else {
+					if (this.nbPlayers() == 3){
+						if (oldLeader == this.leader){
+							io.to(this.attendee[this.leader].socketid).emit('startDisabled');
+						}
+					}
+				}
+		},
+		reconnection: function(from, socket){
+			assert(this.attendee[from]);
+
+				if (this.nbPlayers() >= 4){
+					console.log('RECONNEXION IMPOSSIBLE: FULL');
+					this.attendee[from].status='AVAILABLE';
+					this.attendee[from].emit('game_is_full', {});
+					this.attendee[from].roomid=null;
+					this.attendee[from] = null;
+					delete this.attendee[from];
+					return;
+				} 
+
+				this.players[this.availablePlayerId.pop()] = from;
+				//todo probleme si qqun leave
+				
+				// io.to(this.id).emit('join',{from: from, accept:accept});
+				for (i in this.players){
+					if (this.players[i])
+						io.to(this.attendee[this.players[i]].socketid).emit('join',{from: from, accept: true, players: this.playersFromViewOf(this.players[i])});
+				}
+				this.attendee[from].updateStatus('INROOM', io);
+				this.attendee[from].roomid=this.id;
+				socket.join(this.id);
+				io.to(this.attendee[from].socketid).emit('joinRoom', {players: this.playersFromViewOf(from)});//send context
+				console.log(this.nbPlayers());
+				if (this.game){
+					console.log('reconnect to game');
+					// this.game.reconnection(from);
+				} else {
+					if (this.nbPlayers() == 4){
+						io.to(this.attendee[this.leader].socketid).emit('startEnabled');
+					}
+				}
+
+		},
 		announce: function(from,announce){
 			assert(this.attendee[from]);
 			assert(this.game);
