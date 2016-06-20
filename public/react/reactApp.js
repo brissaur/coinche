@@ -176,7 +176,7 @@ var PlayBoard = React.createClass({
 //   //props:
 //   //state: players[0...3]
   getInitialState: function(){
-    return { mustAnnounce: false, currentAnnounce: null,myCards: [],myTurnToPlay: false};
+    return { mustAnnounce: false, currentAnnounce: null,myCards: [],myTurnToPlay: false, playableCards:[]};
   },
   componentDidMount: function(){
     var self = this;
@@ -190,7 +190,12 @@ var PlayBoard = React.createClass({
     });
     socket.on('play', function(data){
       console.log('play');
-      self.setState({ myTurnToPlay: true})
+      self.setState({ myTurnToPlay: true, playableCards:data.cards})
+      console.log({data:data});
+    });
+    socket.on('played', function(data){
+      console.log(data.from +' play '+ data.card);
+      // self.setState({ myTurnToPlay: true, playableCards:data.cards})
       console.log({data:data});
     });
   },
@@ -200,6 +205,14 @@ var PlayBoard = React.createClass({
   handleLeaveRoom: function(){
     this.setState({mustAnnounce:false, currentAnnounce:null,myCards: []});
     this.props.leaveRoom();
+  },
+  handlePlayCard: function(card){
+    console.log('playCard attempt');
+    if (this.state.playableCards.indexOf(card)!=-1){
+      this.setState({playableCards:[], myTurnToPlay: false});
+      socket.emit('play',{card:card});
+      console.log(card + ' played');
+    }
   },
   render: function(){
     return(
@@ -224,7 +237,7 @@ var PlayBoard = React.createClass({
               <PlayerSpace myTurnToPlay={this.state.myTurnToPlay} inGame={this.props.inGame} place='SOUTH' playerIndex={0} player={this.props.players[0]}/>
             </div>
           </div>
-          <MySpace cards={this.state.myCards}/>
+          <MySpace handlePlayCard={this.handlePlayCard} cards={this.state.myCards}/>
         </div>
         <button onClick={this.handleLeaveRoom} className={'leaveRoom ' + (this.props.inRoom?'':'hidden')}>Leave Room</button>
       </div>
@@ -333,10 +346,11 @@ var AnnounceBoard = React.createClass({
 // });
 var MySpace = React.createClass({
   render: function(){
+    var self=this;
     var cards=this.props.cards.map(function(card,i) {
     // var cards=['AH','7S'].map(function(card,i) {
       return (
-        <Card key={i} card={card} className='card cardToBePlayed'/>
+        <Card key={i} card={card} handlePlayCard={self.props.handlePlayCard} className='cardToBePlayed'/>
       );
     });
     return (
@@ -348,9 +362,13 @@ var MySpace = React.createClass({
 });
 
 var Card = React.createClass({
+  handlePlayCard: function(card){
+    if (this.props.handlePlayCard)
+      this.props.handlePlayCard(this.props.card)
+  },
   render: function(){
     return (
-      <img src={'/public/images/cards/' + this.props.card +'.png'} className={'card '+this.props.className}></img>
+      <img src={'/public/images/cards/' + this.props.card +'.png'} onClick={this.handlePlayCard} className={'card '+this.props.className}></img>
     );
       // <img src={'/public/images/cards/' + this.props.card.value + this.props.card.color +'.png'} className={'card '+this.props.className}></img>
   }

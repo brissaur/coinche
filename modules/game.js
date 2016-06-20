@@ -150,7 +150,7 @@ module.exports = function(io, namespace, attendee, players) {
 
 		//detailed play game
 		playGame: function(pName, card){//card={value:,color:}
-			playRound(pName, card);
+			this.playRound(pName, card);
 			if (this.current.trick.length > 0){ 										// trick ongoing -> next player to play
 				var targetCards = this.getPlayablecards();
 				io.to(this.getCurrentPlayerSocketId()).emit('play',{cards:targetCards});
@@ -171,7 +171,7 @@ module.exports = function(io, namespace, attendee, players) {
 
 		},
 		playRound: function(pName, card){
-			playTrick(pName,card);
+			this.playTrick(pName,card);
 			if (this.current.trick.length == this.players.length){//end trick
 				var lastTrick = [];
 				this.current.trick.forEach(function(card){
@@ -190,11 +190,17 @@ module.exports = function(io, namespace, attendee, players) {
 			} 
 		},
 		playTrick: function(pName, card){
-			var cIndex = this.players[name].cards.indexOf(card);
+			log('DEBUG',pName + ' played ' + card);
+			// console.log(this.attendee[pName].cards);
+			// console.log(this.getPlayablecards());
+			// console.log(card);
+			var cIndex = this.attendee[pName].cards.indexOf(card.toString());
+			// console.log(cIndex);
 			assert(cIndex != -1);//JEN SUIS LA ROBIN
 			// assert(canPlayThisCard); //todo: check card playable
 			this.attendee[pName].cards.splice(cIndex, 1);//ca va pas truncate car c un objet different....
-			this.current.trick.push[card];
+			this.current.trick[this.players.indexOf(pName)]=card;
+			// this.current.trick.push[card];
 			//todo: handle belote
 			//emit card played
 			io.to(this.namespace).emit('played', {from: pName, card:card.toString()});//todo: add scores
@@ -371,7 +377,7 @@ module.exports = function(io, namespace, attendee, players) {
 			var winnerIndex = 0;
 			var winningCard = {};
 			for (index in this.current.trick){
-				var card = this.currentTrick[index];
+				var card = this.current.trick[index];
 				if (cut){
 					if ((card.color == this.current.announce.color) && (card.trumpOrder > max)){
 						max = card.trumpOrder;
