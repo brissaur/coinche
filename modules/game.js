@@ -98,9 +98,11 @@ module.exports = function(io, namespace, attendee, players) {
 					} else {//
 						io.to(this.namespace).emit('chosenTrumps', this.current.announce.color);//todo: add scores
 						this.current.player = (this.current.dealer+1)%this.players.length;
-						var targetCards = this.getPlayablecards();
-						io.to(this.getCurrentPlayerSocketId()).emit('play',{cards:targetCards});
+						// var targetCards = this.getPlayablecards();
+						// io.to(this.getCurrentPlayerSocketId()).emit('play',{cards:targetCards});
 						this.cleanPlayerAnnounce();
+						this.emitUpdatePlayerInfo();
+						this.nextTrick();
 						return;
 					}
 
@@ -179,7 +181,7 @@ module.exports = function(io, namespace, attendee, players) {
 				});
 				var winnerIndex = this.trickWinner();
 				this.current.player = this.trickWinner();
-				this.collectCards(lastTrick,getTeamNumber(this.players[winnerIndex]));
+				this.collectCards(lastTrick,this.getTeamNumber(this.players[winnerIndex]));
 				//update scores
 				this.scores[this.getTeamNumber(winnerIndex)]+=this.trickValue(lastTrick, this.current.announce.color, this.current.trickIndex == 7);
 
@@ -187,7 +189,10 @@ module.exports = function(io, namespace, attendee, players) {
 				this.current.trickIndex++;
 				//this.current.player = ...
 				this.current.trick = [];
-			} 
+			} else {
+				this.setNextPlayer();
+				io.to(this.getCurrentPlayerSocketId()).emit('play',this.getPlayablecards());
+			}
 		},
 		playTrick: function(pName, card){
 			log('DEBUG',pName + ' played ' + card);
@@ -252,7 +257,7 @@ module.exports = function(io, namespace, attendee, players) {
 		},
 		nextTrick: function(){
 			//this.current.player already set in playRound after winner computer
-			var targetCards = this.availableCards();
+			var targetCards = this.getPlayablecards();
 			io.to(this.getCurrentPlayerSocketId()).emit('play',{cards: targetCards});
 		},
 
