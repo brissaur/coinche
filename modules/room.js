@@ -1,8 +1,8 @@
 var Game 	= require('./game');
 var log    	= require('./log');
-module.exports = function(host, io, connectedPlayers, rooms, hostsocket) {
-	// var io=io;
-	// var connectedPlayers=
+
+module.exports = newRoom;
+function newRoom(host, io, connectedPlayers, rooms, hostsocket) {
 	var generatedid;
 	do {
 		generatedid = Math.random(0,100000000);
@@ -13,8 +13,12 @@ module.exports = function(host, io, connectedPlayers, rooms, hostsocket) {
 	attendee[host].roomid=generatedid;
 	hostsocket.join(generatedid);
 	io.to(attendee[host].socketid).emit('joinRoom', {players: [{name:host},{},{},{}]});//send context
+	return new Room(host, io, connectedPlayers, attendee, generatedid);
+}
+
+function Room(host, io, connectedPlayers, attendee, id){
 	return {
-		id: generatedid,// on following template! 'R' + int
+		id: id,// on following template! 'R' + int
 		//manage room socket
 		leader: host,
 		attendee: attendee, //pointeur sur element de connectedPlayers

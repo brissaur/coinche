@@ -6,18 +6,10 @@ var User   = require('../modules/user');
 
 module.exports = function (io) {
 	var connectedPlayers = [];
-	// var welcome = []; //players
 	var rooms = []; //rooms
-		// io.on('connection', function(socket){
-		// });
-		// return;
+
 	io.on('connection', function(socket){
-		// var pName = 'robin';
-		// assert(socket.request);
-		// assert(socket.request.session);
-		// assert(socket.request.session.passport);
 		var pId = socket.request.session.passport.user;
-		// console.log(pId);
 		User.findOne({ '_id' :  pId }, function(err, user) {
             // if there are any errors, return the error
             if (err){
@@ -64,11 +56,6 @@ module.exports = function (io) {
 										assert(rooms[connectedPlayers[pName].roomid]);
 										rooms[connectedPlayers[pName].roomid].disconnection(pName);
 									}
-									// if(connectedPlayers[pName].roomid)
-									// 	rooms[roomid].players[pName].socketid=null;
-									//broadcast to room
-									//broadcast to friends
-
 									connectedPlayers[pName].socketid = null;//question:faut-il free les objets?
 								});
 								socket.on('userData', function(data){//OK
@@ -93,18 +80,9 @@ module.exports = function (io) {
 										rooms[newRoom.id] = newRoom;
 									} else {
 										assert(connectedPlayers[pName].roomid)
-										// assert(rooms[connectedPlayers[pName].roomid].leader == pName);
 									}
-
-									// connectedPlayers[pName].roomid = newRoom.id;
-									// socket.emit('joinRoom',{players: []});
-									//invite players if any
-									// if (data.to)
 									invitePlayers(pName, data.to);
 								});
-								// socket.on('roomInvitation', function(data){  //OK ?? check
-								// 	invitePlayers(pName, data.to);
-								// });
 								socket.on('acceptInvite', function(data){ //WIP
 									var roomid = connectedPlayers[pName].roomid;
 									assert(roomid);
@@ -163,26 +141,18 @@ module.exports = function (io) {
             }
 
         });    
-		// for (var i = 0; i < roomEvents.length; i++) {
-		// 	(function(eventName, playerid) {
-		//          socket.on(eventName, function(data) {
-		//             rooms[connectedPlayers[playerid]].event({data: data, from: playerid});
-		//          }); 
-		//     })(roomEvents[i], pName);
-		// }
 
-	});
 		function invitePlayers(from, to){
 			var roomid = connectedPlayers[from].roomid;
 			assert(roomid);
 			//todo assert to is a table
+			console.log(connectedPlayers);
+			console.log(rooms);
+			console.log(roomid);
 			if(to){
 				for (var i = 0; i < to.length; i++) {
 					assert(connectedPlayers[to[i]]);
 					rooms[roomid].invite(from, to[i]);
-					// connectedPlayers[to[i]].status = 'INVITATION_PENDING';
-					// connectedPlayers[to[i]].roomid = newRoom.id;
-					// io.to(to[i]).emit('roomInvitation', {from: from});//question: if 3 persons, loop?
 				}
 			}
 		}
@@ -196,44 +166,5 @@ module.exports = function (io) {
 			};
 			return connectedUsers;
 		}
-	// io.on('invitation', function(message){
-	// 	//todo
-	// 	assert(!welcome[message.username]);
-
-	// 	welcome[username] = '';
-	// });
-	// io.on('join', function(message){
-	// 	//todo
-	// 	assert(!welcome[message.username]);
-	// 	welcome[message.username] = new User(message.username);
-	// });
-
-	// var io = require('socket.io')(http);
-	// var launcher = require(__dirname+'/modules/launcher')(io);
-
-
+	});
 }
-
-// messages
-// friends
-// 	invite
-// 	delete
-
-// 	acceptInvite
-// 	refuseInvite
-
-// Room
-// 	invite
-// 	leave
-
-// 	acceptInvite
-// 	refuseInvite
-
-
-
-// __________
-// account
-// 	name
-// 	passwd
-// 	friends
-// 	pendingFriendsRequests
