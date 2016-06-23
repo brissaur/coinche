@@ -114,7 +114,7 @@ var TheyInviteYou = React.createClass({ //OK
     render: function(){
       return (
         <div className={'theyInviteYou ' + (this.state.display?'':'hidden')}>
-          <p> {this.props.inviteFrom} invited you to join his room!</p>
+          <span> {this.props.inviteFrom} invited you to join his room!</span>
           <button onClick={this.acceptInvitation.bind(this,true)}>Accept</button>
           <button onClick={this.acceptInvitation.bind(this,false)}>Refuse</button>
         </div>
@@ -227,7 +227,7 @@ var PlayBoard = React.createClass({
             <div className='col-xs-4'>
               <PlayerSpace inGame={this.props.inGame} place='WEST' playerIndex={1} player={this.props.players[1]}/>
             </div>
-            <AnnounceBoard className={this.state.mustAnnounce?'':'hidden'} currentAnnounce={this.state.currentAnnounce} handleAnnounce={this.handleAnnounce}/>
+            <AnnounceBoard className={'col-xs-4 ' + (this.state.mustAnnounce?'':'hidden')} currentAnnounce={this.state.currentAnnounce} handleAnnounce={this.handleAnnounce}/>
             <div className={(this.state.mustAnnounce?'':'col-xs-offset-4 ') + 'col-xs-4'}>
               <PlayerSpace inGame={this.props.inGame} place='EAST' playerIndex={3} player={this.props.players[3]}/>
             </div>
@@ -255,11 +255,11 @@ var PlayerSpace = React.createClass({
   },
   render: function(){
     return (
-      <div id={this.props.place} className={this.props.player.name?'':'hidden'}>
-        <p> {this.props.place} : {this.props.player.name} </p>
-        <div className={this.props.myTurnToPlay?'':'hidden'}>Your turn to play!</div>
-        <div className={this.props.player.announce?'':'hidden'}>{(this.props.player.announce?'Announce:' + (this.props.player.announce.value==0?'Pass':this.props.player.announce.value + this.props.player.announce.color):'')}</div>
-        <div className={this.props.player.dealer?'':'hidden'}>DEALER</div>
+      <div id={this.props.place} className={'playerSpace ' + (this.props.player.name?'':'hidden')}>
+        <span> {this.props.place} : {this.props.player.name} </span>
+        <span className={this.props.myTurnToPlay?'':'hidden'}>Your turn to play!</span>
+        <span className={this.props.player.announce?'':'hidden'}>{(this.props.player.announce?'Announce:' + (this.props.player.announce.value==0?'Pass':this.props.player.announce.value + this.props.player.announce.color):'')}</span>
+        <span className={'dealer ' + (this.props.player.dealer?'':'hidden')}>D</span>
         <button className={this.props.playerIndex==0||this.props.inGame?'hidden':''} onClick={this.handleSwap.bind(this, this.props.playerIndex)}>Swap Place</button>
       </div>
     )
@@ -306,7 +306,7 @@ var AnnounceBoard = React.createClass({
       }
     });
     return (
-      <div className={'col-xs-4 ' + this.props.className} id='announceBoard'>
+      <div className={'announceBoard ' + this.props.className} id='announceBoard'>
         <ul className='list-inline'>
           {possibleAnnounces}
         </ul>
