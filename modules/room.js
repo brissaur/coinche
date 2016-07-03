@@ -176,6 +176,7 @@ function Room(host, io, connectedPlayers, attendee, id){
 			if(this.attendee.length==1){//todo
 
 			}
+			var oldLeader = this.leader;
 			for(var i in this.players){
 				if (this.players[i] == from)
 					this.players[i] = null; //todo: check how to remove elem from array
@@ -185,12 +186,20 @@ function Room(host, io, connectedPlayers, attendee, id){
 				if (pName)
 					io.to(attendee[pName].socketid).emit('leaveRoom',{from: from, players: this.playersFromViewOf(pName)});
 			}
-
-			var oldLeader = this.leader;
 			if (from==this.leader){
-				this.leader=this.players[this.players.indexOf(from)+1%this.players.length]; //todo right function getIndex
+				// console.log({indexFrom:this.players.indexOf(from),typeIndexFrom:typeof(this.players.indexOf(from)),pLength:this.players.length});
+				for (pIndex in this.players){ //todo: take most ancient //the next one after current leader
+					var player = this.players[pIndex];
+					console.log({player:player});
+					if (player){
+						console.log({leader:player});
+						this.leader=player; //todo right function getIndex
+						break;
+					}
+				}
 				io.to(this.id).emit('newLeader',{from: this.leader});
 			}
+
 
 			// todo: issue if dealer left
 				if (this.game){
@@ -229,12 +238,13 @@ function Room(host, io, connectedPlayers, attendee, id){
 				this.attendee[from].roomid=this.id;
 				socket.join(this.id);
 				io.to(this.attendee[from].socketid).emit('joinRoom', {players: this.playersFromViewOf(from)});//send context
-				console.log(this.nbPlayers());
+				// console.log(this.nbPlayers());
 				if (this.game){
 					console.log('reconnect to game');
 					this.game.reconnection(from);
 				} else {
 					if (this.nbPlayers() == 4){
+						console.log({leader:this.leader});
 						io.to(this.attendee[this.leader].socketid).emit('startEnabled');
 					}
 				}
