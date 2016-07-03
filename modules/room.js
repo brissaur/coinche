@@ -74,7 +74,7 @@ function Room(host, io, connectedPlayers, attendee, id){
 				this.attendee[from].roomid=this.id;
 				socket.join(this.id);
 				io.to(this.attendee[from].socketid).emit('joinRoom', {players: this.playersFromViewOf(from)});//send context
-				console.log(this.nbPlayers());
+				// console.log(this.nbPlayers());
 				if (this.nbPlayers() == 4){
 					io.to(this.attendee[this.leader].socketid).emit('startEnabled');
 				}

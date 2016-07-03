@@ -109,6 +109,9 @@ body {
 	border-radius: 10px;
 	font-weight: bold;
 }
+.playableCard{
+	border: thick solid red;
+}
 /*OTHER*/
 .theyInviteYou{
 	/*flex:1;*/

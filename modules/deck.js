@@ -31,7 +31,7 @@ module.exports = function(){//todo: where stock points
 			return resultedDeck;
 		},
 		collectTrick: function(trick, team){
-			this.teamTricks[team]=this.teamTricks[team].concat(trick.reverse());
+			this.teamTricks[team].concat(trick.reverse());
 		},
 		cut: function(){
 			var coupure = Math.floor(Math.random() * 15 + Math.random() * 15);

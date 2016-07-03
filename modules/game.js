@@ -24,13 +24,15 @@ function Game(io, namespace, attendee, players){
 		players: players,
 		attendee: attendee,
 		spectators: null, //todo: need to know who he is spectating
-		scores:null,
+		scores:[[0],[0]],
 		//team: null,
 		current: {
 			dealer: null, //0
 			player: null, //1
+			firstPlayer: null,
 			announce: {value:0,color:null,coinched:false,player:-1},//{value: color: coinched: player:}
 			trick: [],
+			trickIndex: 0,
 			belote: null
 		},
 		start: function(){
@@ -99,7 +101,7 @@ function Game(io, namespace, attendee, players){
 					} else {//
 						io.to(this.namespace).emit('chosenTrumps', this.current.announce.color);//todo: add scores
 						this.current.player = (this.current.dealer+1)%this.players.length;
-						// var targetCards = this.getPlayablecards();
+						// var targetCards = this.playableCards();
 						// io.to(this.getCurrentPlayerSocketId()).emit('play',{cards:targetCards});
 						this.cleanPlayerAnnounce();
 						this.emitUpdatePlayerInfo();
@@ -118,9 +120,9 @@ function Game(io, namespace, attendee, players){
 			io.to(this.namespace).emit('announced', {from: pName, announce:announce});//todo: add scores
 			this.emitUpdatePlayerInfo();
 			this.setNextPlayer();
-			console.log(this.current.announce.value);
-			console.log(this.players[this.current.announce.player]);
-			console.log(this.players[this.current.player]);
+			// console.log(this.current.announce.value);
+			// console.log(this.players[this.current.announce.player]);
+			// console.log(this.players[this.current.player]);
 			io.to(this.getCurrentPlayerSocketId()).emit('announce', {
 				announce:{value:this.current.announce.value,
 				color:this.current.announce.color,
@@ -139,7 +141,7 @@ function Game(io, namespace, attendee, players){
 			this.current.player = (this.current.dealer+1)%this.players.length;
 			this.cleanPlayerAnnounce();
 			this.emitUpdatePlayerInfo();
-			var targetCards = this.getPlayablecards();
+			var targetCards = this.playableCards();
 			io.to(this.getCurrentPlayerSocketId()).emit('play',{cards:targetCards});
 		},
 		play: function(pName,card){//card='AH'
@@ -154,10 +156,24 @@ function Game(io, namespace, attendee, players){
 		//detailed play game
 		playGame: function(pName, card){//card={value:,color:}
 			this.playRound(pName, card);
-			if (this.current.trick.length > 0){ 										// trick ongoing -> next player to play
-				var targetCards = this.getPlayablecards();
+
+
+								console.log('------>playGame');
+								// console.log(this.current.trick);
+								var tmp = [];
+								for (var i = 0; i < this.current.trick.length; i++) {
+									tmp.push(this.current.trick[i]?this.current.trick[i].toString():null);
+								}
+								console.log({trick:tmp,trickIndex:this.current.trickIndex,current:this.current,scores:this.scores});
+
+
+			if (this.trickLength() > 0){ 										// trick ongoing -> next player to play
+			// console.log('nextPlayer same, trick');
+				this.setNextPlayer();
+				var targetCards = this.playableCards();
 				io.to(this.getCurrentPlayerSocketId()).emit('play',{cards:targetCards});
 			} else if (this.current.trickIndex == 8){									//round finished -> end or next round
+			// console.log('end jetee - next jetee');
 				//sys back to room
 				//todo: manage points
 				io.to(this.namespace).emit('endJetee', {scores: this.scores});//todo: add scores
@@ -169,31 +185,37 @@ function Game(io, namespace, attendee, players){
 					this.nextRound();
 				}
 			} else {
+			// console.log('winner player next trick');
 				this.nextTrick();														//next trick
 			}
 
 		},
 		playRound: function(pName, card){
+			// console.log('------>playRound');
 			this.playTrick(pName,card);
-			if (this.current.trick.length == this.players.length){//end trick
+			// console.log({thiscurrenttrick:this.current.trick, thisplayers:this.players});
+			if (this.trickLength() == this.players.length){//end trick
+				console.log('---->endTrick');
 				var lastTrick = [];
 				this.current.trick.forEach(function(card){
 					lastTrick.push(card.toString());
 				});
-				var winnerIndex = this.trickWinner();
-				this.current.player = this.trickWinner();
-				this.collectCards(lastTrick,this.getTeamNumber(this.players[winnerIndex]));
+				var winnerIndex = this.trickWinner().index;
+				var teamIndex = this.getTeamNumber(this.players[winnerIndex]);
+				this.current.player = winnerIndex;
+				this.collectCards(lastTrick,teamIndex);
 				//update scores
-				this.scores[this.getTeamNumber(winnerIndex)]+=this.trickValue(lastTrick, this.current.announce.color, this.current.trickIndex == 7);
+				this.scores[teamIndex]+=trickValue(lastTrick, this.current.announce.color, this.current.trickIndex == 7);
 
 				io.to(this.namespace).emit('endTrick', {});//todo: lastTrick:lastTrick
 				this.current.trickIndex++;
 				//this.current.player = ...
 				this.current.trick = [];
-			} else {
-				this.setNextPlayer();
-				io.to(this.getCurrentPlayerSocketId()).emit('play',this.getPlayablecards());
-			}
+			} 
+			// else {
+			// 	this.setNextPlayer();
+			// 	io.to(this.getCurrentPlayerSocketId()).emit('play',this.playableCards());
+			// }
 		},
 		playTrick: function(pName, card){
 			log('DEBUG',pName + ' played ' + card);
@@ -215,9 +237,10 @@ function Game(io, namespace, attendee, players){
 		sameTeam: function(pName1,pName2){
 			return (this.getTeamNumber(pName1)==this.getTeamNumber(pName2));
 		},
-		getPlayablecards: function(){//return current player playable cards
-			return (this.attendee[this.players[this.current.player]].cards);//todo: playable cards
-		},
+		// getPlayableCards: function(){//return current player playable cards
+		// 	var cards= this.attendee[this.players[this.current.player]].cards;
+		// 	return (this.playableCards());//todo: playable cards
+		// },
 		setNextDealer: function(){
 			if (this.current.dealer !== null)
 				this.attendee[this.players[this.current.dealer]].dealer=false;
@@ -246,6 +269,7 @@ function Game(io, namespace, attendee, players){
 		},
 		nextRound: function(){
 			this.current.announce = {value:0,color:null,coinched:false,player:-1};
+			this.current.trickIndex = 0;
 			this.setNextDealer();
 			this.distribute();
 			io.to(this.getCurrentPlayerSocketId()).emit('announce',{announce: {value:this.current.announce.value, color:this.current.announce.color, coincheEnabled: false}});
@@ -253,26 +277,39 @@ function Game(io, namespace, attendee, players){
 		},
 		nextTrick: function(){
 			//this.current.player already set in playRound after winner computer
-			var targetCards = this.getPlayablecards();
+			this.current.firstPlayer = this.current.player;
+			var targetCards = this.playableCards();
+			console.log('----->nextTrick');
+			console.log(this.current);
 			io.to(this.getCurrentPlayerSocketId()).emit('play',{cards: targetCards});
+		},
+		trickLength: function(){
+			var count = 0;
+			for (i in this.current.trick){
+				count++;
+			}
+			return count;
 		},
 
 ///////////////////////////////////////////////////::
 		//playCards
 		playableCards: function(){
-			var thisPlayerCards = attendee[players[this.current.player].name].cards;
+			console.log('---->playableCards');
+			var thisPlayerCards = this.attendee[this.players[this.current.player]].cards;
 			
+			// console.log({thisPlayerCards:thisPlayerCards});
 			//FIRST TO PLAY -> ALL CARDS
 			if (this.firstToPlay()) return thisPlayerCards;
 
-			var colorPlayedCards = this.cardsOfColor(thisPlayerCards,this.colorPlayed());
+			var colorPlayedCards = cardsOfColor(thisPlayerCards,this.colorPlayed());
+			console.log({colorPLayed: this.colorPlayed(), trump: this.current.announce.color,colorPlayedCards:colorPlayedCards});
 			//IF HE HAS THE COLOR
-			if (colorPlayedCards.length
-			 > 0){
+			if (colorPlayedCards.length > 0){
 				//AND ORDER LIKE TRUMPS
 				if ((this.colorPlayed()==this.current.announce.color) || this.current.announce.color == 'AT'){
 					//MANAGE TRUMP ORDER
-					return this.manageTrumps(this.current.trick, thisPlayerCards, this.current.announce.color,this.colorPlayed());
+					// console.log({manageTrumps:manageTrumps(this.current.trick, thisPlayerCards, this.current.announce.color,this.colorPlayed())});
+					return manageTrumps(this.current.trick, thisPlayerCards, this.current.announce.color,this.colorPlayed());
 				}
 				//IF NO TRUMP RETURN ALL CARDS OF THE COLOR
 				return colorPlayedCards;
@@ -284,17 +321,19 @@ function Game(io, namespace, attendee, players){
 			//RETURN ALL CARDS
 			
 			//IF THE OTHER TEMA IS WINNING
-			var trumpPlayedCards = this.cardsOfColor(thisPlayerCards,this.currentTrump);
+			var trumpPlayedCards = cardsOfColor(thisPlayerCards,this.current.announce.color);
+			// console.log({trumpPlayedCards:trumpPlayedCards});
 			//IF I CAN CUT
 			if(trumpPlayedCards.length>0){
 				//MANAGE TRUMP ORDER
-				return manageTrumps(this.currentTrick, thisPlayerCards, this.currentTrump,this.colorPlayed());
+				// console.log({manageTrumps:manageTrumps(this.current.trick, thisPlayerCards, this.current.announce.color,this.colorPlayed())});
+				return manageTrumps(this.current.trick, thisPlayerCards, this.current.announce.color,this.colorPlayed());
 			}
 			//IF I CANNOT CUT RETURN ALL CARDS
 			return thisPlayerCards;
 		},
 		partnerIsWinning: function(){ 
-			var len = this.current.trick.length;
+			var len = this.trickLength();
 			if (len >=2){
 				return this.trickWinner().index == len - 2;
 			}
@@ -302,12 +341,15 @@ function Game(io, namespace, attendee, players){
 		},
 		/*** RETURN TRUE IF CURRENT PLAYER IS FIRST TO PLAY ***/
 		firstToPlay: function(){
-  			return this.currentTrick.length == 0;
+  			return this.trickLength() == 0;
 		},
 		/*** RETURNS THE COLOR OF THE FIRST CARD OF THE TRICK ***/
 		colorPlayed: function(){
-			if (!this.current.trick[0])  return '';
-			return this.current.trick[0].color;
+			console.log('---->colorPlayed');
+			console.log({firstPlayer:this.current.firstPlayer});
+			console.log(this.current.trick);
+			if (!this.current.trick[this.current.firstPlayer])  return null;
+			return this.current.trick[this.current.firstPlayer].color;
 		},
 
 
@@ -318,38 +360,50 @@ function Game(io, namespace, attendee, players){
 
 
 		trickWinner: function(){
+			console.log('----->trickWinner');
 			var defaultOrder = (this.current.announce.color == 'AT'?'trumpOrder':'order');//if AT or NT, always defaultOrder
 
 			var cut = false;
 			var max = 0;
 			var winnerIndex = 0;
 			var winningCard = {};
-			for (index in this.current.trick){
+			// for (index in this.current.trick){
+			for (var i = 0; i < 4; i++){//todo: sale
+				var index = (this.current.firstPlayer + i)%4;
 				var card = this.current.trick[index];
-				if (cut){
-					if ((card.color == this.current.announce.color) && (card.trumpOrder > max)){
-						max = card.trumpOrder;
-						winnerIndex = index;
-						winningCard = card;
-					}
-				} else {
-					if (card.color == this.current.announce.color) {
-						cut = true;
-						max = card.trumpOrder;
-						winnerIndex = index;
-						winningCard = card;
-					} else if ((card.color == this.colorPlayed()) && (card[defaultOrder] > max)){
-						max = card[defaultOrder];
-						winnerIndex = index;
-						winningCard = card;
+				if (card){
+					if (cut){
+						if ((card.color == this.current.announce.color) && (card.trumpOrder > max)){
+							max = card.trumpOrder;
+							winnerIndex = index;
+							winningCard = card;
+						}
+					} else {
+						if (card.color == this.current.announce.color) {
+							cut = true;
+							max = card.trumpOrder;
+							winnerIndex = index;
+							winningCard = card;
+						} else if ((card.color == this.colorPlayed()) && (card[defaultOrder] > max)){
+							max = card[defaultOrder];
+							winnerIndex = index;
+							winningCard = card;
+						}
 					}
 				}
 			}
-			res = (winnerIndex+this.current.dealer+1)%this.players.length;
+			res = (parseInt(winnerIndex)+this.current.dealer+1)%this.players.length;
+			console.log({cut:cut,max:max,winnerIndex:winnerIndex,winningCard:winningCard,res:res});
+			// console.log(" winner is ");
+			// console.log({card: winningCard, index: res});
 			return {card: winningCard, index: res};
 			// return {card: winningCard, index: parseInt(winnerIndex)};
 		},
 		collectCards: function(trick, team){
+			// console.log("------>collectCards");
+			// console.log(team);
+			// console.log(trick);
+
 			this.deck.collectTrick(trick, team);
 		},
 			/*** COMPUTES WHETHER THERE IS A BELOTE ON THE BEGINING OF A JETEE ***/
@@ -427,7 +481,7 @@ function Game(io, namespace, attendee, players){
 function cardsOfColor (cards, color){//cards=[{value:,color:}]
 	var targetCards = [];
 	cards.forEach(function(card){
-		if (card.color == color){
+		if (Cards[card].color == color){
 			targetCards.push(card);
 		}
 	});
@@ -435,24 +489,29 @@ function cardsOfColor (cards, color){//cards=[{value:,color:}]
 }
 function manageTrumps(playedCards, availableCards, trumpColor, playedColor){
 	//COMPUTE THE GREATEST CARD IN THE TRUMP
+	// console.log('----->manageTrumps');
+	// console.log({playedCards:playedCards,availableCards:availableCards,trumpColor:trumpColor,playedColor:playedColor});
 	var maxTrump = 0;
 	playedCards.forEach(function(_card){
-		var card = Cards[_card.color, _card.value];
+		var card = Cards[_card];
+		// var card = Cards[_card.color, _card.value];
 		if (card.color == trumpColor || (trumpColor == 'AT' && card.color == playedColor)) {
 			if (card.trumpOrder > maxTrump) maxTrump = card.trumpOrder;
 		}
 	});
-	if(maxTrump == 0) return this.cardsOfColor(availableCards, trumpColor);
+	// console.log(maxTrump);
+	if(maxTrump == 0) return cardsOfColor(availableCards, trumpColor);
 
 	//SPLIT THE CARDS OF THIS COLOR LOWER OR GREATER THAN THE MAX VALUE
 	var lowerTrumps = [];
 	var upperTrumps = [];
-	availableCards.forEach(function(card){
+	availableCards.forEach(function(_card){
+		var card = Cards[_card];
 		if (card.color == trumpColor|| (trumpColor == 'AT' && card.color == playedColor)) {
 			if (card.trumpOrder > maxTrump){
-				upperTrumps.push(card);
+				upperTrumps.push(_card);
 			} else {
-				lowerTrumps.push(card);
+				lowerTrumps.push(_card);
 			}
 		}
 	});

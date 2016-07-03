@@ -211,6 +211,8 @@ var PlayBoard = React.createClass({
     if (this.state.playableCards.indexOf(card)!=-1){
       this.setState({playableCards:[], myTurnToPlay: false});
       socket.emit('play',{card:card});
+      this.state.myCards.splice(this.state.myCards.indexOf(card),1);
+      // this.setState({myCards:this.state.myCards};
       console.log(card + ' played');
     }
   },
@@ -237,7 +239,7 @@ var PlayBoard = React.createClass({
               <PlayerSpace myTurnToPlay={this.state.myTurnToPlay} inGame={this.props.inGame} place='SOUTH' playerIndex={0} player={this.props.players[0]}/>
             </div>
           </div>
-          <MySpace handlePlayCard={this.handlePlayCard} cards={this.state.myCards}/>
+          <MySpace handlePlayCard={this.handlePlayCard} cards={this.state.myCards} playableCards={this.state.playableCards}/>
         </div>
         <button onClick={this.handleLeaveRoom} className={'leaveRoom ' + (this.props.inRoom?'':'hidden')}>Leave Room</button>
       </div>
@@ -347,10 +349,11 @@ var AnnounceBoard = React.createClass({
 var MySpace = React.createClass({
   render: function(){
     var self=this;
+    console.log(self.props);
     var cards=this.props.cards.map(function(card,i) {
     // var cards=['AH','7S'].map(function(card,i) {
       return (
-        <Card key={i} card={card} handlePlayCard={self.props.handlePlayCard} className='cardToBePlayed'/>
+        <Card key={i} card={card} handlePlayCard={self.props.handlePlayCard} className={'cardToBePlayed ' + (self.props.playableCards.indexOf(card) != -1 ?'playableCard ':'')}/>
       );
     });
     return (
