@@ -176,7 +176,7 @@ var PlayBoard = React.createClass({
 //   //props:
 //   //state: players[0...3]
   getInitialState: function(){
-    return { mustAnnounce: false, currentAnnounce: null,myCards: [],myTurnToPlay: false, playableCards:[]};
+    return { mustAnnounce: false, currentAnnounce: null,myCards: [],myTurnToPlay: false, playableCards:[], playedCards:[]};
   },
   componentDidMount: function(){
     var self = this;
@@ -193,8 +193,17 @@ var PlayBoard = React.createClass({
       self.setState({ myTurnToPlay: true, playableCards:data.cards})
       console.log({data:data});
     });
+    socket.on('endTrick', function(data){
+      console.log('endTrick');
+      self.setState({playedCards:[]});
+      console.log({data:data});
+    });
     socket.on('played', function(data){
       console.log(data.from +' play '+ data.card);
+      console.log(self.state.playedCards);
+      self.state.playedCards[data.index] = data.card;
+      self.setState({playedCards:self.state.playedCards});
+      console.log(self.state.playedCards);
       // self.setState({ myTurnToPlay: true, playableCards:data.cards})
       console.log({data:data});
     });
@@ -229,6 +238,7 @@ var PlayBoard = React.createClass({
             <div className='col-xs-4'>
               <PlayerSpace inGame={this.props.inGame} place='WEST' playerIndex={1} player={this.props.players[1]}/>
             </div>
+            <PlayedCardsBoard playedCards={this.state.playedCards}/>
             <AnnounceBoard className={'col-xs-4 ' + (this.state.mustAnnounce?'':'hidden')} currentAnnounce={this.state.currentAnnounce} handleAnnounce={this.handleAnnounce}/>
             <div className={(this.state.mustAnnounce?'':'col-xs-offset-4 ') + 'col-xs-4'}>
               <PlayerSpace inGame={this.props.inGame} place='EAST' playerIndex={3} player={this.props.players[3]}/>
@@ -248,6 +258,20 @@ var PlayBoard = React.createClass({
         // <Tapis cards={this.state.playedCards}/>
         // <h1> You are on the PlayBoard </h1>
         // <MySpace cards={this.state.cards}/>
+    )
+  }
+});
+var PlayedCardsBoard = React.createClass({
+  render: function(){
+    var cards=this.props.playedCards.map(function(card,i) {
+      return(
+        <Card key={i} card={card} className='playedCard'/>
+      )
+    });
+    return(
+      <div>
+        {cards}
+      </div>
     )
   }
 });

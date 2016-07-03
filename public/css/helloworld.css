@@ -98,6 +98,10 @@ body {
 }
 .card{
 }
+.playedCard{
+	max-width: 8%;
+	max-height: 12%;
+}
 .cardToBePlayed{
 	flex:1;
 	max-width: 10%;

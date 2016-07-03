@@ -27,6 +27,7 @@ function Game(io, namespace, attendee, players){
 		scores:[[0],[0]],
 		//team: null,
 		current: {
+			state: null,
 			dealer: null, //0
 			player: null, //1
 			firstPlayer: null,
@@ -52,7 +53,7 @@ function Game(io, namespace, attendee, players){
 			//emit if his turn to play
 			var pIndex = this.players.indexOf(from);
 			if (this.current.player == pIndex){
-				if (true){
+				if (this.current.state == 'ANNOUNCING'){
 					var coincheEnabled = !(this.current.announce.player == -1) && 
 										this.current.announce.value!=0 && 
 										!this.sameTeam(this.current.announce.player,this.current.player);
@@ -63,6 +64,11 @@ function Game(io, namespace, attendee, players){
 					});
 
 				} else {
+					assert(this.current.state == 'PLAYING');
+					var targetCards= this.playableCards();
+					io.to(this.getCurrentPlayerSocketId()).emit('play', {
+						cards:targetCards
+					});
 				}
 
 			}
@@ -100,6 +106,7 @@ function Game(io, namespace, attendee, players){
 						return;
 					} else {//
 						io.to(this.namespace).emit('chosenTrumps', this.current.announce.color);//todo: add scores
+						this.current.state = "PLAYING";
 						this.current.player = (this.current.dealer+1)%this.players.length;
 						// var targetCards = this.playableCards();
 						// io.to(this.getCurrentPlayerSocketId()).emit('play',{cards:targetCards});
@@ -141,6 +148,7 @@ function Game(io, namespace, attendee, players){
 			this.current.player = (this.current.dealer+1)%this.players.length;
 			this.cleanPlayerAnnounce();
 			this.emitUpdatePlayerInfo();
+			this.current.state = 'PLAYING';
 			var targetCards = this.playableCards();
 			io.to(this.getCurrentPlayerSocketId()).emit('play',{cards:targetCards});
 		},
@@ -222,7 +230,8 @@ function Game(io, namespace, attendee, players){
 			this.attendee[pName].cards.splice(cIndex, 1);//ca va pas truncate car c un objet different....
 			this.current.trick[this.players.indexOf(pName)]=card;
 			//todo: handle belote
-			io.to(this.namespace).emit('played', {from: pName, card:card.toString()});//todo: add scores
+			// io.to(this.namespace).emit('played', {from: pName, card:card.toString()});//todo: add scores
+			this.emitCardPlayed(pName, card.toString());
 		},
 
 		///////////////
@@ -267,6 +276,7 @@ function Game(io, namespace, attendee, players){
 			this.current.trickIndex = 0;
 			this.setNextDealer();
 			this.distribute();
+			this.current.state == 'ANNOUNCING';
 			io.to(this.getCurrentPlayerSocketId()).emit('announce',{announce: {value:this.current.announce.value, color:this.current.announce.color, coincheEnabled: false}});
 			this.emitUpdatePlayerInfo();
 		},
@@ -464,6 +474,16 @@ function Game(io, namespace, attendee, players){
 			for (i in this.players){
 				io.to(this.attendee[this.players[i]].global.socketid).emit('updatePlayerInfo',{players: this.playersFromViewOf(this.players[i])});
 			}
+		},
+		emitCardPlayed: function(pName,card){
+			for (i in this.players){
+				io.to(this.attendee[this.players[i]].global.socketid).emit('played', {	
+					from: pName, 
+					index:(this.players.indexOf(pName) - i + this.players.length)%this.players.length, 
+					card:card
+				});
+			}
+			
 		},
 		cleanPlayerAnnounce: function(){
 			for (i in this.players){
