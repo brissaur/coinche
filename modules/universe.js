@@ -20,7 +20,6 @@ module.exports = function (io) {
             if (user) {
         		var pName = user.local.email || user.facebook.name;
         		log('info',"User '" + pName + "' connected on socket "+socket.id);
-						           
 								if (connectedPlayers[pName]){
 									// console.log(pName + ' was connected');
 									// console.log(connectedPlayers[pName]);
@@ -41,6 +40,7 @@ module.exports = function (io) {
 									console.log(pName + ' was not connected');
 									connectedPlayers[pName] = new Player(pName, socket.id);
 								}
+							// console.log({connectedPlayers:connectedPlayers, rooms:rooms});
 								// socket.broadcast.emit('connection', {from:pName, connectedUsers:getConnectedUsers(pName)});
 								if (connectedPlayers[pName].status == 'AVAILABLE'){
 									for (name in connectedPlayers){
@@ -50,13 +50,15 @@ module.exports = function (io) {
 									socket.emit('hello', {name: pName});
 								}
 								socket.on('disconnect', function(){
-									console.log(pName + ' is disconnecting...');
+									log('INFO', pName + ' is disconnecting...');
+
 									connectedPlayers[pName].status = 'DISCONNECTED';
 									if (connectedPlayers[pName].roomid){
 										assert(rooms[connectedPlayers[pName].roomid]);
 										rooms[connectedPlayers[pName].roomid].disconnection(pName);
 									}
 									connectedPlayers[pName].socketid = null;//question:faut-il free les objets?
+									// console.log({connectedPlayers:connectedPlayers, rooms:rooms});
 								});
 								socket.on('userData', function(data){//OK
 									socket.emit('userData',{connectedUsers:getConnectedUsers(pName)});//todo
@@ -146,9 +148,9 @@ module.exports = function (io) {
 			var roomid = connectedPlayers[from].roomid;
 			assert(roomid);
 			//todo assert to is a table
-			console.log(connectedPlayers);
-			console.log(rooms);
-			console.log(roomid);
+			// console.log(connectedPlayers);
+			// console.log(rooms);
+			// console.log(roomid);
 			if(to){
 				for (var i = 0; i < to.length; i++) {
 					assert(connectedPlayers[to[i]]);

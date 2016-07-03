@@ -1,5 +1,5 @@
 var socket = io();
-console.log(socket);
+// console.log(socket);
 
 var CoincheApp = React.createClass({
   getInitialState: function(){
@@ -20,12 +20,12 @@ var CoincheApp = React.createClass({
 
     socket.on('joinRoom', function(context){
       // alert('joinROom');
-      console.log(context);
+      // console.log(context);
       self.setState({peopleInRoom: context.players, inRoom: true});
     });
     socket.on('join',function(data){
       // console.log('join');
-      console.log({data:data});
+      // console.log({data:data});
       if (data.accept) {
         self.setState({peopleInRoom: data.players});
       } else {
@@ -33,7 +33,7 @@ var CoincheApp = React.createClass({
       }
     });
     socket.on('leaveRoom', function(data){
-      console.log(data.from + ' left the room');
+      console.log('SYSTEM: ' + data.from + ' left the room');
       // alert(data.from +' left the room');
       // var players = self.state.peopleInRoom;
       // players.splice(players.indexOf(data.from),1);
@@ -53,14 +53,14 @@ var CoincheApp = React.createClass({
     });
     socket.on('startEnabled', function(data){
       self.setState({startButton:true});
-      console.log('enable');
+      // console.log('enable');
     });
     socket.on('startDisabled', function(data){
       self.setState({startButton:false});
-      console.log('disable');
+      // console.log('disable');
     });
     socket.on('startGame', function(data){
-      console.log('startGame');
+      console.log('SYSTEM: starting Game...');
       self.setState({inGame:true});
     });
 
@@ -191,19 +191,25 @@ var PlayBoard = React.createClass({
     socket.on('play', function(data){
       console.log('play');
       self.setState({ myTurnToPlay: true, playableCards:data.cards})
-      console.log({data:data});
+      // console.log({data:data});
     });
     socket.on('endTrick', function(data){
       console.log('endTrick');
       self.setState({playedCards:[]});
-      console.log({data:data});
+      // console.log({data:data});
+    });
+    socket.on('endJetee', function(data){
+      console.log('endJetee');
+      // self.setState({playedCards:[]});
+      alert(data.scores);
+      // console.log({data:data});
     });
     socket.on('played', function(data){
-      console.log(data.from +' play '+ data.card);
-      console.log(self.state.playedCards);
+      // console.log(data.from +' play '+ data.card);
+      // console.log(self.state.playedCards);
       self.state.playedCards[data.index] = data.card;
-      self.setState({playedCards:self.state.playedCards});
-      console.log(self.state.playedCards);
+      self.setState({playedCards:self.state.playedCards});//todo: cleaner to reset state
+      // console.log(self.state.playedCards);
       // self.setState({ myTurnToPlay: true, playableCards:data.cards})
       console.log({data:data});
     });
@@ -216,13 +222,13 @@ var PlayBoard = React.createClass({
     this.props.leaveRoom();
   },
   handlePlayCard: function(card){
-    console.log('playCard attempt');
+    // console.log('playCard attempt');
     if (this.state.playableCards.indexOf(card)!=-1){
       this.setState({playableCards:[], myTurnToPlay: false});
       socket.emit('play',{card:card});
       this.state.myCards.splice(this.state.myCards.indexOf(card),1);
       // this.setState({myCards:this.state.myCards};
-      console.log(card + ' played');
+      // console.log(card + ' played');
     }
   },
   render: function(){
@@ -306,7 +312,7 @@ var AnnounceBoard = React.createClass({
 
   },
   handleSubmit: function(action){
-    console.log(action);
+    // console.log(action);
     if (action == 'coinche'){
       socket.emit('announce',{announce:{value:this.props.currentAnnounce.value,color:this.props.currentAnnounce.color, coinched:true}});
     } else if (action == 'pass'){
@@ -314,7 +320,7 @@ var AnnounceBoard = React.createClass({
     } else if (action == 'announce'){
       socket.emit('announce',{announce:{value:this.state.value,color:this.state.color, coinched:false}});
     }
-    console.log(this.state);
+    // console.log(this.state);
     this.setState({color:null, value:null});
     this.props.handleAnnounce();
   },
@@ -373,7 +379,7 @@ var AnnounceBoard = React.createClass({
 var MySpace = React.createClass({
   render: function(){
     var self=this;
-    console.log(self.props);
+    // console.log(self.props);
     var cards=this.props.cards.map(function(card,i) {
     // var cards=['AH','7S'].map(function(card,i) {
       return (

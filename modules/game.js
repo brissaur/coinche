@@ -24,10 +24,11 @@ function Game(io, namespace, attendee, players){
 		players: players,
 		attendee: attendee,
 		spectators: null, //todo: need to know who he is spectating
-		scores:[[0],[0]],
+		scores:{round:[0,0],game:[0,0]},
+		// scores:[[0],[0]],
 		//team: null,
 		current: {
-			state: null,
+			state: "ANNOUNCING",
 			dealer: null, //0
 			player: null, //1
 			firstPlayer: null,
@@ -166,13 +167,13 @@ function Game(io, namespace, attendee, players){
 			this.playRound(pName, card);
 
 
-								console.log('------>playGame');
+								// console.log('------>playGame');
 								// console.log(this.current.trick);
 								var tmp = [];
 								for (var i = 0; i < this.current.trick.length; i++) {
 									tmp.push(this.current.trick[i]?this.current.trick[i].toString():null);
 								}
-								console.log({trick:tmp,trickIndex:this.current.trickIndex,current:this.current,scores:this.scores});
+								// console.log({trick:tmp,trickIndex:this.current.trickIndex,current:this.current,scores:this.scores});
 
 
 			if (this.trickLength() > 0){ 										// trick ongoing -> next player to play
@@ -182,7 +183,7 @@ function Game(io, namespace, attendee, players){
 			} else if (this.current.trickIndex == 8){									//round finished -> end or next round
 				//sys back to room
 				//todo: manage points
-				io.to(this.namespace).emit('endJetee', {scores: this.scores});//todo: add scores
+				io.to(this.namespace).emit('endJetee', {scores: this.scores.round});//todo: add scores
 				//emit end game ==> back to room
 				if (false){//todo: condition end game																	//if end
 					//emit
@@ -208,9 +209,7 @@ function Game(io, namespace, attendee, players){
 				this.current.player = winnerIndex;
 				this.collectCards(lastTrick,teamIndex);
 				//update scores
-				console.log(typeof(this.scores[teamIndex]));
-				this.scores[teamIndex]+=parseInt(trickValue(lastTrick, this.current.announce.color, this.current.trickIndex == 7));
-				console.log(typeof(this.scores[teamIndex]));
+				this.scores.round[teamIndex]+=parseInt(trickValue(lastTrick, this.current.announce.color, this.current.trickIndex == 7));
 
 				io.to(this.namespace).emit('endTrick', {});//todo: lastTrick:lastTrick
 				this.current.trickIndex++;
@@ -459,6 +458,7 @@ function Game(io, namespace, attendee, players){
 			var pIndex = this.players.indexOf(pName);
 			assert(pIndex != -1);
 			var view = [{},{},{},{}];
+			// console.log({type:'playersFromViewOf',players:this.players});
 			for (i in this.players) {
 				var attendee=this.attendee[this.players[i]];
 				view[(i - pIndex + 4)%4] = {
@@ -471,7 +471,9 @@ function Game(io, namespace, attendee, players){
 			return view;
 		},
 		emitUpdatePlayerInfo: function(){
+			// console.log({attendee:this.attendee});
 			for (i in this.players){
+				// console.log({i:i,thisplayersi:this.players[i],attendeei:this.attendee[this.players[i]]});
 				io.to(this.attendee[this.players[i]].global.socketid).emit('updatePlayerInfo',{players: this.playersFromViewOf(this.players[i])});
 			}
 		},
@@ -553,7 +555,7 @@ function trickValue (trick, trump, isLastTrick){
 		}
 	});
 	if (isLastTrick) res += 10;
-	console.log('--->trickValue');
-	console.log(typeof(res));
+	// console.log('--->trickValue');
+	// console.log(typeof(res));
 	return res;
 }
