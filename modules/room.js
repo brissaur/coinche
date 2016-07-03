@@ -55,7 +55,8 @@ function Room(host, io, connectedPlayers, attendee, id){
 				if (this.nbPlayers() >= 4){
 					console.log('ALLERTTTTTTTTTT thi.players.length==4');
 					this.attendee[from].status='AVAILABLE';
-					this.attendee[from].emit('game_is_full', {});
+					io.to(this.attendee[from].socket).emit('game_is_full', {});
+					// this.attendee[from].emit('game_is_full', {});
 					
 					this.attendee[from] = null;
 					delete this.attendee[from];
@@ -219,7 +220,8 @@ function Room(host, io, connectedPlayers, attendee, id){
 				if (this.nbPlayers() >= 4){
 					console.log('RECONNEXION IMPOSSIBLE: FULL');
 					this.attendee[from].status='AVAILABLE';
-					this.attendee[from].emit('game_is_full', {});
+					// this.attendee[from].emit('game_is_full', {});
+					io.to(this.attendee[from].socket).emit('game_is_full', {});
 					this.attendee[from].roomid=null;
 					this.attendee[from] = null;
 					delete this.attendee[from];
