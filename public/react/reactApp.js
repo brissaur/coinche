@@ -3,7 +3,7 @@ var socket = io();
 
 var CoincheApp = React.createClass({
   getInitialState: function(){
-    return {youInviteThem: true, playersToInvite:[], theyInviteYou: false, inviteFrom: null, playBoard: true, 
+    return {youInviteThem: true, playersToInvite:[], playBoard: true, 
       peopleInRoom:[{},{},{},{}], inRoom: false, inGame: false}
   },
   componentDidMount: function() {
@@ -86,7 +86,7 @@ var CoincheApp = React.createClass({
     return (
       <div id='AppROOT'>
         <YouInviteThem inGame={this.state.inGame} players={this.state.playersToInvite} className={!this.state.youInviteThem?'hidden':''}/>
-        <TheyInviteYou inviteFrom={this.state.inviteFrom} className={!this.state.theyInviteYou?'hidden':''}/>
+        <TheyInviteYou />
         <PlayBoard inGame={this.state.inGame} inRoom={this.state.inRoom} players={this.state.peopleInRoom} leaveRoom={this.handleLeaveRoom} className={!this.state.playBoard?'hidden':''}/>
         <button onClick={this.handleStartGame} className={'startGame ' + (!this.state.startButton?'hidden':'')}>Start Game</button>
       </div>
@@ -114,7 +114,7 @@ var TheyInviteYou = React.createClass({ //OK
     render: function(){
       return (
         <div className={'theyInviteYou ' + (this.state.display?'':'hidden')}>
-          <span> {this.props.inviteFrom} invited you to join his room!</span>
+          <span> {this.state.inviteFrom} invited you to join his room!</span>
           <button onClick={this.acceptInvitation.bind(this,true)}>Accept</button>
           <button onClick={this.acceptInvitation.bind(this,false)}>Refuse</button>
         </div>
