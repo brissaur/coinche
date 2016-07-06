@@ -114,10 +114,12 @@ module.exports = function (io) {
 									rooms[roomid].startGame(pName);
 								});
 								socket.on('chat', function(data){
-									var roomid = connectedPlayers[pName].roomid;
-									assert(roomid);
 									assert(data.msg);
-									rooms[roomid].chat(pName,data.msg);
+									var roomid = connectedPlayers[pName].roomid;
+									// assert(roomid);
+									if (roomid)
+										rooms[roomid].chat(pName,data.msg);
+									//todo: handle message /w /friends 
 								});
 								socket.on('announce', function(data){
 									var roomid = connectedPlayers[pName].roomid;
