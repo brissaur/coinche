@@ -89,6 +89,8 @@ var CoincheApp = React.createClass({
         <TheyInviteYou />
         <PlayBoard inGame={this.state.inGame} inRoom={this.state.inRoom} players={this.state.peopleInRoom} leaveRoom={this.handleLeaveRoom} className={!this.state.playBoard?'hidden':''}/>
         <button onClick={this.handleStartGame} className={'startGame ' + (!this.state.startButton?'hidden':'')}>Start Game</button>
+        <ChatWindow />
+        <ChatBar />
       </div>
     );
         // <div className='startGameAndLeaveRoom'>
@@ -406,7 +408,100 @@ var Card = React.createClass({
       // <img src={'/public/images/cards/' + this.props.card.value + this.props.card.color +'.png'} className={'card '+this.props.className}></img>
   }
 });
+// #chatWindow 
+//       ul#messages
+//     #messageForm.hidden
+//       form(action='')
+//         input#messageInput(autocomplete='off')
+//         button.hidden Send
+var ChatWindow = React.createClass({
+  getInitialState: function(){
+    return ({messages:[]});
+  },
+  componentDidMount: function(){
+    var self=this;
+    socket.on('chat',function(data){
+      console.log(data);
+      console.log(data.from + ': ' +data.msg);
+      self.state.messages.push(data);
+      // self.state.messages.push({from:data.from,msg:data.msg});
+      self.setState({messages:self.state.messages});
+      //timer
+      var delay = Math.min(Math.max(3000,data.msg.length*148),12000);
+      console.log(delay);
+      setTimeout(function() {
+        var index = self.state.messages.indexOf(data);
+        self.state.messages.splice(index,1);
+        self.setState({messages:self.state.messages});
+      }, delay);
+    });
+  },
+  render: function(){
+    // var players = Object.keys(this.props.players).map(function(player, i) {
+    var messages = this.state.messages.map(function(message, i) {
+      return (
+        <il key={i}>{message.from + ': ' + message.msg}</il>
+      )
+    });
+      return(
+        <div id="chatWindow">
+          <ul>
+            {messages}
+          </ul>
+        </div>
+      )
+    }
+});
+var ChatBar = React.createClass({
+  getInitialState: function(){
+    return ({hidden:true});
+  },
+  componentDidMount: function(){
+    // alert('re');*
+    var self = this;
+    document.addEventListener('keypress', function(e){
+      // alert(e);
+      // var elem = $('#messageForm')
+      if(e.which == 13) {//if it is enter;
+        e.preventDefault();
 
+          // $('#messageInput').focus();//TODO
+        self.setState({hidden: !self.state.hidden});
+        var messageInput = ReactDOM.findDOMNode(self.refs.messageInput);
+        if(!self.state.hidden){
+          messageInput.focus();
+        } else {
+          if (messageInput.value.trim()){
+            self.handleSubmit(messageInput.value);
+            messageInput.value = '';
+          }
+        }
+              // if (elem.hasClass('hidden')){
+              //   e.preventDefault();
+              //   elem.removeClass('hidden');
+              // } 
+        // else {
+          
+        //   if (!$('#messageInput').is((":focus"))) e.preventDefault();
+        //   elem.addClass('hidden');
+        // }
+      }
+    });
+  },
+  handleSubmit: function(value){
+    // alert('submit! '+val);
+
+    socket.emit('chat',{msg:value});
+  },
+  render: function(){
+    return(
+      <form className={this.state.hidden?'hidden':''} action='' >
+        <input ref='messageInput' id='messageInput' autocomplete='off' />
+        <button className='hidden'>Send</button>
+      </form>
+    )
+  }
+});
 //RENDER
  ReactDOM.render(
     <div>

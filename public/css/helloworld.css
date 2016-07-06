@@ -60,6 +60,25 @@ body {
       padding-left: 10px;
       z-index:100000000;
 }
+#chatWindow{
+	z-index: 1000000000;
+	/*background-color: lightblue;*/
+	height: 100%;
+	width: 50%;
+}
+#chatWindow ul{
+	position: absolute;
+	background-color: grey;
+	opacity: 0.95;
+	bottom: 15%;
+}
+#chatWindow ul * {
+	color:red;
+	/*opacity: 1;*/
+	display: block;
+	/*position: absolute;*/
+	font-size: 25px;
+}
 /* PLAYBOARD */
 .playBoard{
 	position: absolute;

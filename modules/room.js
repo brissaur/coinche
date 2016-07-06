@@ -166,6 +166,7 @@ function Room(host, io, connectedPlayers, attendee, id){
 		},
 		chat: function(from, msg){
 			assert(this.attendee[from]);
+			log('DEBUG',"Message from "+from+": "+msg);
 			io.to(this.id).emit('chat',{from: from, msg: msg});
 		},
 		disconnection: function(from){
@@ -240,6 +241,8 @@ function Room(host, io, connectedPlayers, attendee, id){
 				this.attendee[from].updateStatus('INROOM', io);
 				this.attendee[from].roomid=this.id;
 				socket.join(this.id);
+				// console.log(socket);
+				// console.log(this.id);
 				io.to(this.attendee[from].socketid).emit('joinRoom', {players: this.playersFromViewOf(from)});//send context
 				// console.log(this.nbPlayers());
 				if (this.nbPlayers() == 4){
@@ -247,6 +250,7 @@ function Room(host, io, connectedPlayers, attendee, id){
 					io.to(this.attendee[this.leader].socketid).emit('startEnabled');
 				}
 			} else {
+				socket.join(this.id);
 				console.log('reconnect to game');
 				this.game.reconnection(from);
 			}
