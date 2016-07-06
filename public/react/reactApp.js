@@ -65,7 +65,7 @@ var CoincheApp = React.createClass({
     });
 
     socket.on('updatePlayerInfo', function(data){
-      console.log(data.players);
+      // console.log(data.players);
       self.setState({peopleInRoom: data.players});
     });
 
@@ -207,13 +207,14 @@ var PlayBoard = React.createClass({
       // console.log({data:data});
     });
     socket.on('played', function(data){
-      // console.log(data.from +' play '+ data.card);
+      console.log(data.from +' play '+ data.card);
       // console.log(self.state.playedCards);
       self.state.playedCards[data.index] = data.card;
       self.setState({playedCards:self.state.playedCards});//todo: cleaner to reset state
       // console.log(self.state.playedCards);
       // self.setState({ myTurnToPlay: true, playableCards:data.cards})
       console.log({data:data});
+      console.log(self.state);
     });
   },
   handleAnnounce: function(){
@@ -261,23 +262,19 @@ var PlayBoard = React.createClass({
         </div>
         <button onClick={this.handleLeaveRoom} className={'leaveRoom ' + (this.props.inRoom?'':'hidden')}>Leave Room</button>
       </div>
-
-        // <AnnounceBoard currentAnnounce={this.state.currentAnnounce} handleAnnounce={this.handleAnnounce}/>
-        // <Tapis cards={this.state.playedCards}/>
-        // <h1> You are on the PlayBoard </h1>
-        // <MySpace cards={this.state.cards}/>
     )
   }
 });
 var PlayedCardsBoard = React.createClass({
   render: function(){
     var cards=this.props.playedCards.map(function(card,i) {
+      console.log(i);
       return(
         <Card key={i} card={card} className='playedCard'/>
       )
     });
     return(
-      <div>
+      <div id='playedCardsBoard'>
         {cards}
       </div>
     )

@@ -46,13 +46,22 @@ function Game(io, namespace, attendee, players){
 		},
 		reconnection: function(from){
 			var player = this.attendee[from];
+			var socketid=player.global.socketid;
 			//emit playerinfos
-			io.to(player.global.socketid).emit('startGame', {});//todo: players, dealer, 
+			io.to(socketid).emit('startGame', {});//todo: players, dealer, 
 			this.emitUpdatePlayerInfo();
 			//emit cards
-			io.to(player.global.socketid).emit('distribute',{cards: player.cards});
-			//emit if his turn to play
+			io.to(socketid).emit('distribute',{cards: player.cards});
 			var pIndex = this.players.indexOf(from);
+			//emit cards played
+			var pLength = this.players.length;
+			this.current.trick.forEach(function(card, i){
+				io.to(socketid).emit('played',{
+					from:players[i],
+					index:(i - pIndex + pLength)%pLength,
+					card:card.toString()});
+			});
+			//emit if his turn to play
 			if (this.current.player == pIndex){
 				if (this.current.state == 'ANNOUNCING'){
 					var coincheEnabled = !(this.current.announce.player == -1) && 
