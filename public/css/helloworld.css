@@ -182,6 +182,12 @@ body {
 /*	width:6%;
 	height:6%;*/
 }
+
+
 #scores * {
 	border: solid thin;
+}
+
+.selected {
+	border: solid thick red ;
 }
