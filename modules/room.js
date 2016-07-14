@@ -250,8 +250,9 @@ function Room(host, io, connectedPlayers, attendee, id){
 					io.to(this.attendee[this.leader].socketid).emit('startEnabled');
 				}
 			} else {
-				socket.join(this.id);
 				console.log('reconnect to game');
+				socket.join(this.id);
+				io.to(this.attendee[from].socketid).emit('joinRoom', {players: this.playersFromViewOf(from)});//send context
 				this.game.reconnection(from);
 			}
 
