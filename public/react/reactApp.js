@@ -116,7 +116,7 @@ var TheyInviteYou = React.createClass({ //OK
     render: function(){
       return (
         <div className={'theyInviteYou ' + (this.state.display?'':'hidden')}>
-          <span> {this.state.inviteFrom} invited you to join his room!</span>
+          <div> {this.state.inviteFrom} invited you to join his room!</div>
           <button onClick={this.acceptInvitation.bind(this,true)}>Accept</button>
           <button onClick={this.acceptInvitation.bind(this,false)}>Refuse</button>
         </div>

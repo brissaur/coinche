@@ -51,8 +51,11 @@ module.exports = function (io) {
 								}
 								socket.on('disconnect', function(){
 									log('INFO', pName + ' is disconnecting...');
-
-									connectedPlayers[pName].status = 'DISCONNECTED';
+									var status = connectedPlayers[pName].status;
+									if (status == 'INVITATION_PENDING'){
+										connectedPlayers[pName].roomid=null;
+									}
+									status = 'DISCONNECTED';
 									if (connectedPlayers[pName].roomid){
 										assert(rooms[connectedPlayers[pName].roomid]);
 										rooms[connectedPlayers[pName].roomid].disconnection(pName);

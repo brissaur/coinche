@@ -164,10 +164,22 @@ body {
 .theyInviteYou{
 	/*flex:1;*/
 	position: relative;
+	background-color: grey;
 	z-index: 100;
-	bottom: 0;
-	right:0;
+	top: 33%;
+	left:33%;
+	/*height: 33;*/
+	width:33%;
+	text-align: center;
 }
+.theyInviteYou button {
+	width: 33%;
+	font-size:30;
+}
+.theyInviteYou div {
+	font-size:40;
+}
+
 .startGame{
 	position: absolute;
 	z-index:1000;
@@ -177,6 +189,8 @@ body {
 	top: 0;
 	right:0;
 	z-index:1000;
+	border-radius: 25px;
+
 }
 .card{
 /*	width:6%;
@@ -190,4 +204,5 @@ body {
 
 .selected {
 	border: solid thick red ;
+	margin
 }
