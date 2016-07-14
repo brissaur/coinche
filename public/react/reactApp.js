@@ -153,9 +153,13 @@ var TheyInviteYou = React.createClass({ //OK
       var players = Object.keys(this.props.players).map(function(player, i) {
         var name = self.props.players[player].name;
         var status = self.props.players[player].status;
-        return (
-          <li key={i}> <a value={name} onClick={self.handleSelectFriend.bind(self, name)} >{name + ' - ' + status}</a></li>
-        );
+        if (status == 'AVAILABLE'){
+          return (
+            <li key={i}> <a value={name} onClick={self.handleSelectFriend.bind(self, name)} >{name + ' - ' + status}</a></li>
+          );
+        } else {
+          return null;
+        }
       });
       return (
         <div className={'youInviteThem ' + this.props.className + ' ' + (this.props.inGame?'hidden':'')}>
