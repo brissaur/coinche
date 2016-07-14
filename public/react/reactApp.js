@@ -76,7 +76,7 @@ var CoincheApp = React.createClass({
   },
   handleLeaveRoom: function(){
     socket.emit('leaveRoom', {});
-    this.setState({peopleInRoom:[{},{},{},{}], inRoom:false, inGame: false})
+    this.setState({peopleInRoom:[{},{},{},{}], inRoom:false, inGame: false, startButton:false})
     // alert('leaving room...');
   },
   handleStartGame: function(){
