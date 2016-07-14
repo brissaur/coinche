@@ -267,16 +267,16 @@ var PlayBoard = React.createClass({
 });
 var PlayedCardsBoard = React.createClass({
   render: function(){
+    var positions = ["bottom","left","top","right"];
     var cards=this.props.playedCards.map(function(card,i) {
-      console.log(i);
       return(
-        <Card key={i} card={card} className='playedCard'/>
+        <Card key={i} card={card} className={"playedCard " + positions[i]}/>
       )
     });
     return(
-      <div id='playedCardsBoard'>
-        {cards}
-      </div>
+        <div id='playedCardsBoard'>
+          {cards}
+        </div>
     )
   }
 });

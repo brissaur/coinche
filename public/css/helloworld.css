@@ -147,10 +147,23 @@ body {
 .playableCard{
 	border: thick solid red;
 }
+#playedCardsBoard{
+	position: relative;
+	/*background-color: black;*/
+}
+#playedCardsBoard *{
+	position: relative;
+}
+#playedCardsBoard .top{
+	top: 20px;
+}
+#playedCardsBoard .bottom{
+	bottom: 20px;
+}
 /*OTHER*/
 .theyInviteYou{
 	/*flex:1;*/
-	position: absolute;
+	position: relative;
 	z-index: 100;
 	bottom: 0;
 	right:0;
