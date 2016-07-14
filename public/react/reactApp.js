@@ -178,7 +178,7 @@ var PlayBoard = React.createClass({
 //   //props:
 //   //state: players[0...3]
   getInitialState: function(){
-    return { mustAnnounce: false, currentAnnounce: null,myCards: [],myTurnToPlay: false, playableCards:[], playedCards:[]};
+    return { mustAnnounce: false, currentAnnounce: null,myCards: [],myTurnToPlay: false, playableCards:[], playedCards:[], scores:{round:[null,null],game:[0,0]}};
   },
   componentDidMount: function(){
     var self = this;
@@ -202,9 +202,10 @@ var PlayBoard = React.createClass({
     });
     socket.on('endJetee', function(data){
       console.log('endJetee');
-      // self.setState({playedCards:[]});
-      alert(data.scores);
-      // console.log({data:data});
+      self.setState({scores:data.scores})
+    });
+    socket.on('updateScores', function(data){
+      self.setState({scores:data.scores})
     });
     socket.on('played', function(data){
       console.log(data.from +' play '+ data.card);
@@ -239,7 +240,10 @@ var PlayBoard = React.createClass({
       <div className={'playBoard ' + this.props.className}>
         <div className={'playBoardContainer'}>
           <div className={'row'}>
-            <div className='col-xs-offset-4 col-xs-4'>
+            <div className='col-xs-4'>
+              <Scores scores={this.state.scores} className={this.props.inGame?'':'hidden'}/>
+            </div>
+            <div className='col-xs-4'>
               <PlayerSpace inGame={this.props.inGame} place='NORTH' playerIndex={2} player={this.props.players[2]}/>
             </div>
           </div>
@@ -262,6 +266,29 @@ var PlayBoard = React.createClass({
         </div>
         <button onClick={this.handleLeaveRoom} className={'leaveRoom ' + (this.props.inRoom?'':'hidden')}>Leave Room</button>
       </div>
+    )
+  }
+});
+var Scores = React.createClass({
+  render: function(){
+    return(
+      <table id='scores' className={this.props.className}>
+        <tr>
+          <th></th>
+          <th>Us</th>
+          <th>Them</th>
+        </tr>
+        <tr>
+          <td>Last Round</td>
+          <td>{this.props.scores.round[0]}</td>
+          <td>{this.props.scores.round[1]}</td>
+        </tr>
+        <tr>
+          <td>Game</td>
+          <td>{this.props.scores.game[0]}</td>
+          <td>{this.props.scores.game[1]}</td>
+        </tr>
+      </table>
     )
   }
 });
@@ -418,14 +445,11 @@ var ChatWindow = React.createClass({
   componentDidMount: function(){
     var self=this;
     socket.on('chat',function(data){
-      console.log(data);
-      console.log(data.from + ': ' +data.msg);
       self.state.messages.push(data);
       // self.state.messages.push({from:data.from,msg:data.msg});
       self.setState({messages:self.state.messages});
       //timer
       var delay = Math.min(Math.max(3000,data.msg.length*148),12000);
-      console.log(delay);
       setTimeout(function() {
         var index = self.state.messages.indexOf(data);
         self.state.messages.splice(index,1);

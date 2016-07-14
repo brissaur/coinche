@@ -61,6 +61,8 @@ function Game(io, namespace, attendee, players){
 					index:(i - pIndex + pLength)%pLength,
 					card:card.toString()});
 			});
+			//emit update scores
+			io.to(socketid).emit('updateScores', {scores:this.scoresFromViewOf(from)});
 			//emit if his turn to play
 			if (this.current.player == pIndex){
 				if (this.current.state == 'ANNOUNCING'){
@@ -192,10 +194,14 @@ function Game(io, namespace, attendee, players){
 			} else if (this.current.trickIndex == 8){									//round finished -> end or next round
 				//sys back to room
 				//todo: manage points
-				io.to(this.namespace).emit('endJetee', {scores: this.scores.round});//todo: add scores
+			for (i in this.players){
+				io.to(this.namespace).emit('endJetee',{scores:this.scoresFromViewOf(this.players[i])});
+			}
 				//emit end game ==> back to room
 				if (false){//todo: condition end game																	//if end
 					//emit
+					var team = this.players
+					var scoresFromViewOfPlayer
 					//delete game item //todo: comment lol?
 				} else { 																//if next round
 					this.nextRound();
@@ -470,14 +476,25 @@ function Game(io, namespace, attendee, players){
 			// console.log({type:'playersFromViewOf',players:this.players});
 			for (i in this.players) {
 				var attendee=this.attendee[this.players[i]];
-				view[(i - pIndex + 4)%4] = {
-					name: this.players[i],
-					dealer: attendee.dealer,
-					playedCard: attendee.playedCard,
-					announce: attendee.announce
-				};
+				if (!attendee){
+					console.log({players:this.players, i:i, player:this.players[i],attendees:this.attendee, attendee:this.attendee[this.players[i]]});
+				}
+				// if (attendee){
+					view[(i - pIndex + 4)%4] = {
+						name: this.players[i],
+						dealer: attendee.dealer,
+						playedCard: attendee.playedCard,
+						announce: attendee.announce
+					};
+				// }
 			}
 			return view;
+		},
+		scoresFromViewOf: function(pName){
+			var teamIndex = this.getTeamNumber(this.players.indexOf(pName));
+			var scoresFromViewOfPlayer = { round:[this.scores.round[teamIndex],this.scores.round[(teamIndex + 1)%2]],
+											game:[this.scores.game[teamIndex],this.scores.game[(teamIndex + 1)%2]] };
+			return scoresFromViewOfPlayer;
 		},
 		emitUpdatePlayerInfo: function(){
 			// console.log({attendee:this.attendee});
