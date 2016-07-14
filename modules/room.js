@@ -81,6 +81,7 @@ function Room(host, io, connectedPlayers, attendee, id){
 				}
 			} else {
 				this.attendee[from].updateStatus('AVAILABLE', io);
+				this.attendee[from].roomid = null;
 				this.attendee[from] = null;
 				delete this.attendee[from];
 				io.to(this.id).emit('join',{from: from, accept:accept});
