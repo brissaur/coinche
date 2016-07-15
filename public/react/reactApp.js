@@ -186,22 +186,33 @@ var PlayBoard = React.createClass({
   },
   componentDidMount: function(){
     var self = this;
+    var DISPLAYDELAY = 3000;
     socket.on('announce', function(data){
-      self.setState({mustAnnounce:true, currentAnnounce:data.announce})
+      setTimeout(function() {
+        self.setState({mustAnnounce:true, currentAnnounce:data.announce});
+      }, self.getNbPlayedCards() == 4 ? DISPLAYDELAY : 0);
     });
     socket.on('announced', function(data){
     });
     socket.on('distribute', function(data){
-      self.setState({myCards:data.cards});
+      // self.setState({myCards:data.cards});
+      setTimeout(function() {
+        self.setState({myCards:data.cards});
+      }, self.getNbPlayedCards() == 4 ? DISPLAYDELAY : 0);
     });
     socket.on('play', function(data){
-      console.log('play');
-      self.setState({ myTurnToPlay: true, playableCards:data.cards})
+      // console.log('play');
+      setTimeout(function() {
+        self.setState({ myTurnToPlay: true, playableCards:data.cards });
+      }, self.getNbPlayedCards() == 4 ? DISPLAYDELAY : 0);
+      // self.setState({ myTurnToPlay: true, playableCards:data.cards})
       // console.log({data:data});
     });
     socket.on('endTrick', function(data){
       console.log('endTrick');
-      self.setState({playedCards:[]});
+      setTimeout(function() {
+        self.setState({playedCards:[]});
+      }, DISPLAYDELAY);
       // console.log({data:data});
     });
     socket.on('endJetee', function(data){
@@ -222,6 +233,14 @@ var PlayBoard = React.createClass({
       console.log(self.state);
     });
   },
+  getNbPlayedCards: function(){ //UGLY USE WORKAROUND TODO TOCHANGE
+    var nbPlayedCards = 0;
+    for (var i in this.state.playedCards){
+      if (this.state.playedCards[i])
+        nbPlayedCards++;
+    }
+    return nbPlayedCards;
+  },
   handleAnnounce: function(){
     this.setState({mustAnnounce: false, currentAnnounce: null});
   },
@@ -230,7 +249,8 @@ var PlayBoard = React.createClass({
     this.props.leaveRoom();
   },
   handlePlayCard: function(card){
-    // console.log('playCard attempt');
+    // console.log('playCard attempt');;
+    // if (this.state.playableCards.indexOf(card)!=-1 && this.getNbPlayedCards() < 4){ //TODO UGLY SECOND EXPR
     if (this.state.playableCards.indexOf(card)!=-1){
       this.setState({playableCards:[], myTurnToPlay: false});
       socket.emit('play',{card:card});
