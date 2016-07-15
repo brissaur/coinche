@@ -9,6 +9,7 @@ button{
 	background-color: blue;
 	color:lightgrey;
 	border-radius: 25px;
+	font-size:24;
 }
 li{
 	list-style-type: none;
@@ -17,6 +18,7 @@ li{
 a{
 	background-color: yellow;
 	padding: 5px;
+	font-size:18;
 
 }
 span{
@@ -24,6 +26,7 @@ span{
 	color:white;
 	border-radius: 5px;
 	padding: 5px;
+	font-size:24;
 }
 /*p, span, div,li,a{
 	color:white;
@@ -57,8 +60,9 @@ body {
       background-color: rgba(0,0,0,0.5);
       border: none;
       color: white;
-      padding-left: 10px;
+      padding-left: 50px;
       z-index:100000000;
+      font-size:24px;
 }
 #chatWindow{
 	z-index: 1000000000;
@@ -177,15 +181,15 @@ body {
 }
 .theyInviteYou button {
 	width: 33%;
-	font-size:30;
 }
 .theyInviteYou div {
 	font-size:40;
 }
 
 .startGame{
-	position: absolute;
+	position: relative;
 	z-index:1000;
+
 }
 .leaveRoom{
 	position: absolute;
