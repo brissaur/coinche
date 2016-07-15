@@ -267,21 +267,25 @@ var Scores = React.createClass({
   render: function(){
     return(
       <table id='scores' className={this.props.className}>
-        <tr>
-          <th></th>
-          <th>Us</th>
-          <th>Them</th>
-        </tr>
-        <tr>
-          <td>Last Round</td>
-          <td>{this.props.scores.round[0]}</td>
-          <td>{this.props.scores.round[1]}</td>
-        </tr>
-        <tr>
-          <td>Game</td>
-          <td>{this.props.scores.game[0]}</td>
-          <td>{this.props.scores.game[1]}</td>
-        </tr>
+        <thead>
+          <tr>
+            <th></th>
+            <th>Us</th>
+            <th>Them</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Last Round</td>
+            <td>{this.props.scores.round[0]}</td>
+            <td>{this.props.scores.round[1]}</td>
+          </tr>
+          <tr>
+            <td>Game</td>
+            <td>{this.props.scores.game[0]}</td>
+            <td>{this.props.scores.game[1]}</td>
+          </tr>
+        </tbody>
       </table>
     )
   }
