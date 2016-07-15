@@ -311,8 +311,9 @@ var PlayerSpace = React.createClass({
     socket.emit('swap', {to:pIndex})
   },
   render: function(){
+    var displayColors = {'H':'♥','S':'♠','C':'♣','D':'♦','AT':'AT','NT':'NT'};
     var myTurnToPLay = this.props.myTurnToPLay ? <span>Your turn to play!</span> : null;
-    var announce = this.props.player.announce ? <span>{'Announce:' + (this.props.player.announce.value==0?'Pass':this.props.player.announce.value + this.props.player.announce.color)}</span> : null
+    var announce = this.props.player.announce ? <span>{'Announce:' + (this.props.player.announce.value==0?'Pass':this.props.player.announce.value + displayColors[this.props.player.announce.color])}</span> : null
     var dealer = this.props.player.dealer ? <span className={'dealer '}>D</span> : null;
     var swapPlace = this.props.playerIndex==0||this.props.inGame ? null : <button onClick={this.handleSwap.bind(this, this.props.playerIndex)}>Swap Place</button>
     var res = this.props.player.name ? <div id={this.props.place} className={'playerSpace '}>
@@ -375,12 +376,12 @@ var AnnounceBoard = React.createClass({
           {possibleAnnounces}
         </ul>
         <ul className='list-inline'>
-          <li><a onClick={ this.selectColor.bind(this, 'H') } className={self.state.color == 'H'?'selected':''}>H</a></li>
-          <li><a onClick={ this.selectColor.bind(this, 'S') } className={self.state.color == 'S'?'selected':''}>S</a></li>
-          <li><a onClick={ this.selectColor.bind(this, 'D') } className={self.state.color == 'D'?'selected':''}>D</a></li>
-          <li><a onClick={ this.selectColor.bind(this, 'C') } className={self.state.color == 'C'?'selected':''}>C</a></li>
-          <li><a onClick={ this.selectColor.bind(this, 'AT') } className={self.state.color == 'AT'?'selected':''}>AT</a></li>
-          <li><a onClick={ this.selectColor.bind(this, 'NT') } className={self.state.color == 'NT'?'selected':''}>NT</a></li>
+          <li><a onClick={ this.selectColor.bind(this, 'H') } className={'announce ' + (this.state.color == 'H'?'selected':'')} style={{color:'red'}}>♥</a></li>
+          <li><a onClick={ this.selectColor.bind(this, 'S') } className={'announce ' + (this.state.color == 'S'?'selected':'')} style={{color:'black'}}>♠</a></li>
+          <li><a onClick={ this.selectColor.bind(this, 'D') } className={'announce ' + (this.state.color == 'D'?'selected':'')} style={{color:'red'}}>♦</a></li>
+          <li><a onClick={ this.selectColor.bind(this, 'C') } className={'announce ' + (this.state.color == 'C'?'selected':'')} style={{color:'black'}}>♣</a></li>
+          <li><a onClick={ this.selectColor.bind(this, 'AT') } className={'announce ' + (this.state.color == 'AT'?'selected':'')}>AT</a></li>
+          <li><a onClick={ this.selectColor.bind(this, 'NT') } className={'announce ' + (this.state.color == 'NT'?'selected':'')}>NT</a></li>
         </ul>
         <ul className='list-inline'>
           <li><a onClick={ this.handleSubmit.bind(this, 'announce')}>Announce</a></li>

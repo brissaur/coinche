@@ -121,6 +121,9 @@ body {
 .announceBoard ul li a {
 	
 }
+.announce{
+	font-size:24;
+}
 /* CARDS */
 .mySpace{
 	display:flex;
