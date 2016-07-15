@@ -290,7 +290,7 @@ function Game(io, namespace, attendee, players){
 			this.current.trickIndex = 0;
 			this.setNextDealer();
 			this.distribute();
-			this.current.state == 'ANNOUNCING';
+			this.current.state = 'ANNOUNCING';
 			io.to(this.getCurrentPlayerSocketId()).emit('announce',{announce: {value:this.current.announce.value, color:this.current.announce.color, coincheEnabled: false}});
 			this.emitUpdatePlayerInfo();
 		},
