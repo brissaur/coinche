@@ -157,12 +157,13 @@ function Game(io, namespace, attendee, players){
 
 			this.current.announce.coinched = true;
 			//todo: emit 'coinched'!!
+
 			this.current.player = (this.current.dealer+1)%this.players.length;
 			this.cleanPlayerAnnounce();
 			this.emitUpdatePlayerInfo();
 			this.current.state = 'PLAYING';
-			var targetCards = this.playableCards();
-			io.to(this.getCurrentPlayerSocketId()).emit('play',{cards:targetCards});
+
+			this.nextTrick();
 		},
 		play: function(pName,card){//card='AH'
 			var pIndex =this.players.indexOf(pName);
@@ -328,6 +329,7 @@ function Game(io, namespace, attendee, players){
 		//playCards
 		playableCards: function(){
 			// console.log('---->playableCards');
+			// console.log({current:this.current});
 			var thisPlayerCards = this.attendee[this.players[this.current.player]].cards;
 			
 			// console.log({thisPlayerCards:thisPlayerCards});
@@ -383,7 +385,7 @@ function Game(io, namespace, attendee, players){
 		/*** RETURNS THE COLOR OF THE FIRST CARD OF THE TRICK ***/
 		colorPlayed: function(){
 			// console.log('---->colorPlayed');
-			// console.log({firstPlayer:this.current.firstPlayer});
+			console.log({firstPlayer:this.current.firstPlayer});
 			// console.log(this.current.trick);
 			if (!this.current.trick[this.current.firstPlayer])  return null;
 			return this.current.trick[this.current.firstPlayer].color;
