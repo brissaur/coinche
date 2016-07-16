@@ -194,14 +194,28 @@ function Game(io, namespace, attendee, players){
 			} else if (this.current.trickIndex == 8){									//round finished -> end or next round
 				//sys back to room
 				//todo: manage points
+
+
+			//contrat fait ?
+			var teamWhoAnnounced= this.getTeamNumber(this.current.announce.player);
+			var contractPassed = this.scores.round[teamWhoAnnounced] >= this.current.announce.value; //todo: && scores > other team
+			//
+			if (contractPassed){
+				this.scores.game[teamWhoAnnounced] += this.current.announce.value * (this.current.announce.coinched ? 2 : 1);
+			} else {
+				this.scores.game[(teamWhoAnnounced + 1)%2] += this.current.announce.coinched ? this.current.announce.value *2 : 160;
+
+			}
+
 			for (i in this.players){
-				io.to(this.namespace).emit('endJetee',{scores:this.scoresFromViewOf(this.players[i])});
+				var pName = this.players[i];
+				io.to(this.attendee[pName].global.socketid).emit('endJetee',{scores:this.scoresFromViewOf(pName)});
 			}
 				//emit end game ==> back to room
 				if (false){//todo: condition end game																	//if end
 					//emit
-					var team = this.players
-					var scoresFromViewOfPlayer
+					// var team = this.players
+					// var scoresFromViewOfPlayer
 					//delete game item //todo: comment lol?
 				} else { 																//if next round
 					this.nextRound();
