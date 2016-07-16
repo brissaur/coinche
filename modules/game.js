@@ -327,21 +327,21 @@ function Game(io, namespace, attendee, players){
 ///////////////////////////////////////////////////::
 		//playCards
 		playableCards: function(){
-			console.log('---->playableCards');
+			// console.log('---->playableCards');
 			var thisPlayerCards = this.attendee[this.players[this.current.player]].cards;
 			
-			console.log({thisPlayerCards:thisPlayerCards});
+			// console.log({thisPlayerCards:thisPlayerCards});
 			//FIRST TO PLAY -> ALL CARDS
 			if (this.firstToPlay()) return thisPlayerCards;
 
 			var colorPlayedCards = cardsOfColor(thisPlayerCards,this.colorPlayed());
-			console.log({colorPLayed: this.colorPlayed(), trump: this.current.announce.color,colorPlayedCards:colorPlayedCards});
+			// console.log({colorPLayed: this.colorPlayed(), trump: this.current.announce.color,colorPlayedCards:colorPlayedCards});
 			//IF HE HAS THE COLOR
 			if (colorPlayedCards.length > 0){
 				//AND ORDER LIKE TRUMPS
 				if ((this.colorPlayed()==this.current.announce.color) || this.current.announce.color == 'AT'){
 					//MANAGE TRUMP ORDER
-					console.log({manageTrumps:manageTrumps(this.current.trick, thisPlayerCards, this.current.announce.color,this.colorPlayed())});
+					// console.log({manageTrumps:manageTrumps(this.current.trick, thisPlayerCards, this.current.announce.color,this.colorPlayed())});
 					return manageTrumps(this.current.trick, thisPlayerCards, this.current.announce.color,this.colorPlayed());
 				}
 				//IF NO TRUMP RETURN ALL CARDS OF THE COLOR
@@ -350,18 +350,18 @@ function Game(io, namespace, attendee, players){
 
 			//IF I DO NOT HAVE THE COLOR
 			//AND IF MY PARTNER IS WINNING
-			console.log('Is partner winning??');
+			// console.log('Is partner winning??');
 			if (this.partnerIsWinning()) return thisPlayerCards;
-			console.log('----> NO');
+			// console.log('----> NO');
 			//RETURN ALL CARDS
 			
 			//IF THE OTHER TEMA IS WINNING
 			var trumpPlayedCards = cardsOfColor(thisPlayerCards,this.current.announce.color);
-			console.log({trumpPlayedCards:trumpPlayedCards});
+			// console.log({trumpPlayedCards:trumpPlayedCards});
 			//IF I CAN CUT
 			if(trumpPlayedCards.length>0){
 				//MANAGE TRUMP ORDER
-				console.log({manageTrumps:manageTrumps(this.current.trick, thisPlayerCards, this.current.announce.color,this.colorPlayed())});
+				// console.log({manageTrumps:manageTrumps(this.current.trick, thisPlayerCards, this.current.announce.color,this.colorPlayed())});
 				return manageTrumps(this.current.trick, thisPlayerCards, this.current.announce.color,this.colorPlayed());
 			}
 			//IF I CANNOT CUT RETURN ALL CARDS
@@ -429,7 +429,8 @@ function Game(io, namespace, attendee, players){
 					}
 				}
 			}
-			res = (parseInt(winnerIndex)+this.current.dealer+1)%this.players.length;
+			res = parseInt(winnerIndex);
+			// res = (parseInt(winnerIndex)+this.current.dealer+1)%this.players.length;
 			// console.log({cut:cut,max:max,winnerIndex:winnerIndex,winningCard:winningCard,res:res});
 			// console.log(" winner is ");
 			// console.log({card: winningCard, index: res});
