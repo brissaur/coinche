@@ -210,6 +210,10 @@ var PlayBoard = React.createClass({
         self.setState({belote:null});
       }, DISPLAYDELAY*100); //TODO: change delay
     });
+    socket.on('coinche', function(data){
+      //TODO: AMAZING annimation for coinched
+      alert(data.from + ' coinched !!!!');
+    });
   },
   getNbPlayedCards: function(){ //UGLY USE WORKAROUND TODO TOCHANGE
     var nbPlayedCards = 0;

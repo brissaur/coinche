@@ -161,6 +161,7 @@ function Game(io, namespace, attendee, players){
 			//todo: emit 'coinched'!!
 
 			this.current.player = (this.current.dealer+1)%this.players.length;
+			io.to(this.namespace).emit('coinche',{from:pName});
 			this.cleanPlayerAnnounce();
 			this.emitUpdatePlayerInfo();
 			this.current.state = 'PLAYING';
