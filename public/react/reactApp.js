@@ -165,7 +165,7 @@ var TheyInviteYou = React.createClass({ //OK
 //////////////////////////////////////////////////////////////////////////////
 var PlayBoard = React.createClass({
   getInitialState: function(){
-    return { mustAnnounce: false, currentAnnounce: null,myCards: [],myTurnToPlay: false, playableCards:[], playedCards:[], scores:{round:[null,null],game:[0,0]}};
+    return { mustAnnounce: false, currentAnnounce: null,myCards: [],myTurnToPlay: false, playableCards:[], playedCards:[], scores:{round:[null,null],game:[0,0]}, belote:null};
   },
   componentDidMount: function(){
     var self = this;
@@ -203,6 +203,13 @@ var PlayBoard = React.createClass({
       self.state.playedCards[data.index] = data.card;
       self.setState({playedCards:self.state.playedCards});//todo: cleaner to reset state
     });
+    socket.on('belote', function(data){
+      console.log({belote:data});
+      self.setState({belote:{player: data.index, value:(data.rebelote?'RE':'')+'BELOTE'}});
+      setTimeout(function() {
+        self.setState({belote:null});
+      }, DISPLAYDELAY*100); //TODO: change delay
+    });
   },
   getNbPlayedCards: function(){ //UGLY USE WORKAROUND TODO TOCHANGE
     var nbPlayedCards = 0;
@@ -230,6 +237,7 @@ var PlayBoard = React.createClass({
     var scores = this.props.inGame ? <Scores scores={this.state.scores}/>:null;
     var announceBoard = this.state.mustAnnounce ? <AnnounceBoard className='col-xs-4' currentAnnounce={this.state.currentAnnounce} handleAnnounce={this.handleAnnounce}/>:null;
     var leaveRoomButton = this.props.inRoom ? <button onClick={this.handleLeaveRoom} className='leaveRoom '>Leave Room</button> : null;
+    var belote = this.state.belote;
     return(
       <div className={'playBoard '}>
         <div className={'playBoardContainer'}>
@@ -238,22 +246,22 @@ var PlayBoard = React.createClass({
               {scores}
             </div>
             <div className='col-xs-4'>
-              <PlayerSpace inGame={this.props.inGame} place='NORTH' playerIndex={2} player={this.props.players[2]}/>
+              <PlayerSpace inGame={this.props.inGame} place='NORTH' playerIndex={2} player={this.props.players[2]} belote={belote?(belote.player==2?(belote.value):null):null}/>
             </div>
           </div>
           <div className={'row'}>
             <div className='col-xs-4'>
-              <PlayerSpace inGame={this.props.inGame} place='WEST' playerIndex={1} player={this.props.players[1]}/>
+              <PlayerSpace inGame={this.props.inGame} place='WEST' playerIndex={1} player={this.props.players[1]} belote={belote?(belote.player==1?(belote.value):null):null}/>
             </div>
             <PlayedCardsBoard playedCards={this.state.playedCards}/>
             {announceBoard}
             <div className={(this.state.mustAnnounce?'':'col-xs-offset-4 ') + 'col-xs-4'}>
-              <PlayerSpace inGame={this.props.inGame} place='EAST' playerIndex={3} player={this.props.players[3]}/>
+              <PlayerSpace inGame={this.props.inGame} place='EAST' playerIndex={3} player={this.props.players[3]} belote={belote?(belote.player==3?(belote.value):null):null}/>
             </div>
           </div>
           <div className={'row'}>
             <div className='col-xs-offset-4 col-xs-4'>
-              <PlayerSpace myTurnToPlay={this.state.myTurnToPlay} inGame={this.props.inGame} place='SOUTH' playerIndex={0} player={this.props.players[0]}/>
+              <PlayerSpace myTurnToPlay={this.state.myTurnToPlay} inGame={this.props.inGame} place='SOUTH' playerIndex={0} player={this.props.players[0]} belote={belote?(belote.player==0?(belote.value):null):null}/>
             </div>
           </div>
           <MySpace handlePlayCard={this.handlePlayCard} cards={this.state.myCards} playableCards={this.state.playableCards}/>
@@ -315,11 +323,13 @@ var PlayerSpace = React.createClass({
     var myTurnToPLay = this.props.myTurnToPLay ? <span>Your turn to play!</span> : null;
     var announce = this.props.player.announce ? <span>{'Announce:' + (this.props.player.announce.value==0?'Pass':this.props.player.announce.value + displayColors[this.props.player.announce.color])}</span> : null
     var dealer = this.props.player.dealer ? <span className={'dealer '}>D</span> : null;
-    var swapPlace = this.props.playerIndex==0||this.props.inGame ? null : <button onClick={this.handleSwap.bind(this, this.props.playerIndex)}>Swap Place</button>
+    var swapPlace = this.props.playerIndex==0||this.props.inGame ? null : <button onClick={this.handleSwap.bind(this, this.props.playerIndex)}>Swap Place</button>;
+    var belote = this.props.belote?<span>{this.props.belote}</span>:null;
     var res = this.props.player.name ? <div id={this.props.place} className={'playerSpace '}>
                                         {myTurnToPLay}
                                         {announce}
                                         {dealer}
+                                        {belote}
                                         <span> {this.props.place} : {this.props.player.name} </span>
                                         {swapPlace}
                                       </div>

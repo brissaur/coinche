@@ -29,6 +29,7 @@ function Game(io, namespace, attendee, players){
 		//team: null,
 		current: {
 			state: "ANNOUNCING",
+			belote: null,
 			dealer: null, //0
 			player: null, //1
 			firstPlayer: null,
@@ -124,6 +125,7 @@ function Game(io, namespace, attendee, players){
 						// io.to(this.getCurrentPlayerSocketId()).emit('play',{cards:targetCards});
 						this.cleanPlayerAnnounce();
 						this.emitUpdatePlayerInfo();
+						console.log({belote:this.isThereABelote()});
 						this.nextTrick();
 						return;
 					}
@@ -163,6 +165,7 @@ function Game(io, namespace, attendee, players){
 			this.emitUpdatePlayerInfo();
 			this.current.state = 'PLAYING';
 
+			console.log({belote:this.isThereABelote()});
 			this.nextTrick();
 		},
 		play: function(pName,card){//card='AH'
@@ -198,6 +201,9 @@ function Game(io, namespace, attendee, players){
 
 
 			//contrat fait ?
+			if (this.current.belote){
+				this.scores.round[this.getTeamNumber(this.current.belote.player)] += 20;
+			}
 			var teamWhoAnnounced= this.getTeamNumber(this.current.announce.player);
 			var contractPassed = this.scores.round[teamWhoAnnounced] >= this.current.announce.value; //todo: && scores > other team
 			//
@@ -258,9 +264,11 @@ function Game(io, namespace, attendee, players){
 
 			this.attendee[pName].cards.splice(cIndex, 1);//ca va pas truncate car c un objet different....
 			this.current.trick[this.players.indexOf(pName)]=card;
-			//todo: handle belote
 			// io.to(this.namespace).emit('played', {from: pName, card:card.toString()});//todo: add scores
+			
 			this.emitCardPlayed(pName, card.toString());
+			//HANDLE BELOTE
+			this.handleBelote(pName, card);
 		},
 
 		///////////////
@@ -301,6 +309,7 @@ function Game(io, namespace, attendee, players){
 			};
 		},
 		nextRound: function(){
+			this.current.belote = null;
 			this.current.announce = {value:0,color:null,coinched:false,player:-1};
 			this.current.trickIndex = 0;
 			this.setNextDealer();
@@ -385,7 +394,7 @@ function Game(io, namespace, attendee, players){
 		/*** RETURNS THE COLOR OF THE FIRST CARD OF THE TRICK ***/
 		colorPlayed: function(){
 			// console.log('---->colorPlayed');
-			console.log({firstPlayer:this.current.firstPlayer});
+			// console.log({firstPlayer:this.current.firstPlayer});
 			// console.log(this.current.trick);
 			if (!this.current.trick[this.current.firstPlayer])  return null;
 			return this.current.trick[this.current.firstPlayer].color;
@@ -448,9 +457,12 @@ function Game(io, namespace, attendee, players){
 		},
 			/*** COMPUTES WHETHER THERE IS A BELOTE ON THE BEGINING OF A JETEE ***/
 		isThereABelote: function(){
+			// console.log({trump:this.current.announce.color});
 			if (this.current.announce.color == 'AT' || this.current.announce.color == 'NT') return false;
 			
-			this.players.forach(function(pName){
+			for (i in this.players){
+				var pName = this.players[i];
+			// this.players.foreach(function(pName){
 				// FOR EACH PLAYER
 				var cards = this.attendee[pName].cards;
 				for (var j = 0; j < cards.length; j++) {
@@ -465,7 +477,7 @@ function Game(io, namespace, attendee, players){
 								var secondCard=Cards[cards[k]];
 								if (secondCard.value == 'Q' && secondCard.color == this.current.announce.color){
 								//AND THE QUEEN
-									return this.belote = {player : this.playersIndexes.indexOf(pName), rebelote: false};
+									return this.current.belote = {player : this.players.indexOf(pName), rebelote: false};
 								//THERE IS A BELOTE
 								}
 							}
@@ -477,14 +489,29 @@ function Game(io, namespace, attendee, players){
 							for (var k = j+1; k < cards.length; k++){
 								var secondCard=Cards[cards[k]];
 								if (secondCard.value == 'K' && secondCard.color == this.current.announce.color){
-									return this.belote = {player : this.playersIndexes.indexOf(pName), rebelote: false};
+									return this.current.belote = {player : this.players.indexOf(pName), rebelote: false};
 								}
 							}
 							return false;
 						}
 					}
 				}
-			});
+			};
+		},
+		handleBelote: function(pName,card){
+			if (this.current.belote && this.players[this.current.belote.player] == pName){
+				if (card.color == this.current.announce.color && (card.value == 'K' || card.value == 'Q')){
+					var rebelote = this.current.belote.rebelote;
+					log('DEBUG',(rebelote?'RE':'') + 'BELOTE: ' + card + ' has been played by '+ pName);
+					if (!rebelote) this.current.belote.rebelote = true;
+					for (i in this.players){
+						io.to(this.attendee[this.players[i]].global.socketid).emit('belote',{
+						 	index: 		(this.players.indexOf(pName) - i + this.players.length)%this.players.length,
+							rebelote: 	rebelote
+						});
+					}
+				}
+			}
 		},
 		playersFromViewOf: function(pName){
 			var pIndex = this.players.indexOf(pName);
