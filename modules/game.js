@@ -298,7 +298,7 @@ function Game(io, namespace, attendee, players){
 			return (this.current.player+1)%this.players.length;
 		},
 		getCurrentPlayerSocketId: function(){
-			return this.attendee[players[this.current.player]].global.socketid;
+			return this.attendee[this.players[this.current.player]].global.socketid;
 		},
 		distribute: function(){
 			var cards = this.deck.distribute();
