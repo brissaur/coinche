@@ -104,7 +104,7 @@ body {
 	
 }
 .playBoardContainer >*{
-	flex:1;
+	/*flex:1;*/
 }
 .youInviteThem{
 	position: absolute;
@@ -137,13 +137,32 @@ body {
 .card{
 }
 .playedCard{
-	max-width: 8%;
-	max-height: 12%;
+	position:absolute;
+	max-height: 37%;
+
+/*	max-width: 8%;
+	max-height: 12%;*/
 }
 .cardToBePlayed{
-	flex:1;
-	max-width: 10%;
-	align-content: center;
+	/*max-height: 100%;*/
+	max-width: 140px;
+	max-height: 20vh;
+}
+.playedCard.top{
+	top: 0;
+	left:40%;
+}
+.playedCard.left{
+	left:0;
+	top:25%;
+}
+.playedCard.right{
+	right:0;
+	top:25%;
+}
+.playedCard.bottom{
+	bottom: 0;
+	left:40%;
 }
 .dealer{
 	background-color: red;
@@ -155,17 +174,14 @@ body {
 	border: thick solid red;
 }
 #playedCardsBoard{
-	position: relative;
+	/*position: relative;*/
+	/*height: 100%;*/
+	align
 	/*background-color: black;*/
 }
-#playedCardsBoard *{
-	position: relative;
-}
-#playedCardsBoard .top{
-	top: 20px;
-}
-#playedCardsBoard .bottom{
-	bottom: 20px;
+.centerRow{
+	align-items: stretch;
+    display: flex;
 }
 /*OTHER*/
 .theyInviteYou{
