@@ -13,7 +13,7 @@ module.exports = function (io) {
 		User.findOne({ '_id' :  pId }, function(err, user) {
             // if there are any errors, return the error
             if (err){
-                console.log(err);
+            	log('error',err);
             	socket.disconnect();
             }
         	// check to see if theres already a user with that email
@@ -21,26 +21,19 @@ module.exports = function (io) {
         		var pName = user.local.email || user.facebook.name;
         		log('info',"User '" + pName + "' connected on socket "+socket.id);
 								if (connectedPlayers[pName]){
-									// console.log(pName + ' was connected');
-									// console.log(connectedPlayers[pName]);
+									log('debug','Player ' + pName + ' is reconnecting');
 									connectedPlayers[pName].socketid = socket.id;
 									if (connectedPlayers[pName].roomid){
 										//RECONNECTION TO ROOM
 										assert(rooms[connectedPlayers[pName].roomid]);
-										// console.log(pName + ' reconnection')
 										connectedPlayers[pName].status = 'INROOM';
 										rooms[connectedPlayers[pName].roomid].reconnection(pName, socket);
-
-
 									} else {
 										connectedPlayers[pName].status = 'AVAILABLE';
-										
 									}
 								} else {
-									console.log(pName + ' was not connected');
 									connectedPlayers[pName] = new Player(pName, socket.id);
 								}
-							// console.log({connectedPlayers:connectedPlayers, rooms:rooms});
 								// socket.broadcast.emit('connection', {from:pName, connectedUsers:getConnectedUsers(pName)});
 								if (connectedPlayers[pName].status == 'AVAILABLE'){
 									for (name in connectedPlayers){
@@ -50,7 +43,7 @@ module.exports = function (io) {
 									socket.emit('hello', {name: pName});
 								}
 								socket.on('disconnect', function(){
-									log('INFO', pName + ' is disconnecting...');
+									log('INFO', 'Player ' + pName + ' is disconnecting...');
 									var status = connectedPlayers[pName].status;
 									if (status == 'INVITATION_PENDING'){
 										connectedPlayers[pName].roomid=null;
@@ -61,11 +54,9 @@ module.exports = function (io) {
 										rooms[connectedPlayers[pName].roomid].disconnection(pName);
 									}
 									connectedPlayers[pName].socketid = null;//question:faut-il free les objets?
-									// console.log({connectedPlayers:connectedPlayers, rooms:rooms});
 								});
 								socket.on('userData', function(data){//OK
 									socket.emit('userData',{connectedUsers:getConnectedUsers(pName)});//todo
-									// socket.emit('userData',{connectedUsers:[{name:'pp1'},{name:'pp2'},{name:'pp3'}]});//todo
 								});
 								//CHAT MSG HANDLER
 								socket.on('whisper', function(data){
@@ -143,7 +134,7 @@ module.exports = function (io) {
 									rooms[roomid].play(pName,data.card);
 								});
  			} else {
-            	console.log('no user');
+            	log('ERROR','Connection from unknown user');
             	socket.disconnect();
             }
 
@@ -153,9 +144,6 @@ module.exports = function (io) {
 			var roomid = connectedPlayers[from].roomid;
 			assert(roomid);
 			//todo assert to is a table
-			// console.log(connectedPlayers);
-			// console.log(rooms);
-			// console.log(roomid);
 			if(to){
 				for (var i = 0; i < to.length; i++) {
 					assert(connectedPlayers[to[i]]);
