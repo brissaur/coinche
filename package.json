@@ -1,6 +1,6 @@
 {
   "name": "coinche",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "coinche application by brissaur",
   "main": "server.js",
   "scripts": {
