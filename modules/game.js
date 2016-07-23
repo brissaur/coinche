@@ -313,6 +313,7 @@ function Game(io, namespace, attendee, players){
 		},
 		nextRound: function(){
 			log('DEBUG','Game '+ this.namespace + ': nextRound');
+			this.scores.round = [0,0];
 			this.current.belote = null;
 			this.current.announce = {value:0,color:null,coinched:false,player:-1};
 			this.current.trickIndex = 0;
