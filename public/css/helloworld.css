@@ -232,8 +232,10 @@ body {
 }
 
 
-#scores * {
+.scores * {
 	border: solid thin;
+	font-weight: bold;
+	text-align: center;
 }
 
 .selected {

@@ -65,6 +65,9 @@ function Game(io, namespace, attendee, players){
 					index:(i - pIndex + pLength)%pLength,
 					card:card.toString()});
 			});
+			//emit chosen color
+			if (this.current.state == 'PLAYING')
+				io.to(socketid).emit('chosenTrumps', {value:this.current.announce.value, color:this.current.announce.color});
 			//emit update scores
 			io.to(socketid).emit('updateScores', {scores:{round:[0,0],game:this.scoresFromViewOf(from).game}});
 			//emit lastTrick
@@ -126,7 +129,7 @@ function Game(io, namespace, attendee, players){
 						this.nextRound();
 						return;
 					} else {//
-						io.to(this.namespace).emit('chosenTrumps', this.current.announce.color);//todo: add scores
+						io.to(this.namespace).emit('chosenTrumps', {color:this.current.announce.color,value:this.current.announce.value});//todo: add scores
 						this.current.state = "PLAYING";
 						this.current.player = (this.current.dealer+1)%this.players.length;
 						// var targetCards = this.playableCards();
@@ -170,6 +173,7 @@ function Game(io, namespace, attendee, players){
 
 			this.current.player = (this.current.dealer+1)%this.players.length;
 			io.to(this.namespace).emit('coinche',{from:pName});
+			io.to(this.namespace).emit('chosenTrumps', {color:this.current.announce.color,value:this.current.announce.value});//todo: add scores
 			this.cleanPlayerAnnounce();
 			this.emitUpdatePlayerInfo();
 			this.current.state = 'PLAYING';
@@ -329,6 +333,7 @@ function Game(io, namespace, attendee, players){
 			this.distribute();
 			this.current.state = 'ANNOUNCING';
 			io.to(this.getCurrentPlayerSocketId()).emit('announce',{announce: {value:this.current.announce.value, color:this.current.announce.color, coincheEnabled: false}});
+			io.to(this.namespace).emit('chosenTrumps', null);//todo: add scores
 			this.emitUpdatePlayerInfo();
 		},
 		nextTrick: function(){

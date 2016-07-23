@@ -1,4 +1,6 @@
 var socket = io();
+var displayColors = {'H':'♥','S':'♠','C':'♣','D':'♦','AT':'AT','NT':'NT'};
+
 // console.log(socket);
 
 var CoincheApp = React.createClass({
@@ -168,7 +170,8 @@ var PlayBoard = React.createClass({
     return { mustAnnounce: false, currentAnnounce: null,myCards: [],myTurnToPlay: false, 
       playableCards:[], playedCards:[], scores:{round:[null,null],game:[0,0]}, 
       belote:null, winningCardIndex:null, 
-      lastTrick:null,lastTrickWinner:null};
+      lastTrick:null,lastTrickWinner:null,
+      chosenAnnounce:null};
   },
   componentDidMount: function(){
     var self = this;
@@ -225,6 +228,11 @@ var PlayBoard = React.createClass({
       //TODO: AMAZING annimation for coinched
       alert(data.from + ' coinched !!!!');
     });
+    socket.on('chosenTrumps', function(data){
+      self.setState({chosenAnnounce:data});
+      //TODO: AMAZING annimation for coinched
+      // alert(data.from + ' coinched !!!!');
+    });
   },
   getNbPlayedCards: function(){ //UGLY USE WORKAROUND TODO TOCHANGE
     var nbPlayedCards = 0;
@@ -259,8 +267,13 @@ var PlayBoard = React.createClass({
       <div className={'playBoard '}>
         <div className={'playBoardContainer'}>
           <div className={'row'} style={{flex:'1'}}>
-            <div className='col-xs-4'>
-              {scores}
+            <div className='col-xs-4' style={{backgroundColor:'lightblue'}}>
+              <div className='col-xs-4'>
+                {scores}
+              </div> 
+              <div className='col-xs-4'>
+                {this.state.chosenAnnounce?"Announce: "+this.state.chosenAnnounce.value+displayColors[this.state.chosenAnnounce.color]:""}
+              </div> 
             </div> 
             <div className='col-xs-4' >
               <PlayerSpace inGame={this.props.inGame} place='NORTH' playerIndex={2} player={this.props.players[2]} belote={belote?(belote.player==2?(belote.value):null):null} />
@@ -294,7 +307,7 @@ var PlayBoard = React.createClass({
 var Scores = React.createClass({
   render: function(){
     return(
-      <table id='scores' className={this.props.className}>
+      <table className={'scores '+this.props.className}>
         <thead>
           <tr>
             <th></th>
