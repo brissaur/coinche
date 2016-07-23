@@ -165,11 +165,13 @@ var TheyInviteYou = React.createClass({ //OK
 //////////////////////////////////////////////////////////////////////////////
 var PlayBoard = React.createClass({
   getInitialState: function(){
-    return { mustAnnounce: false, currentAnnounce: null,myCards: [],myTurnToPlay: false, playableCards:[], playedCards:[], scores:{round:[null,null],game:[0,0]}, belote:null};
+    return { mustAnnounce: false, currentAnnounce: null,myCards: [],myTurnToPlay: false, 
+      playableCards:[], playedCards:[], scores:{round:[null,null],game:[0,0]}, 
+      belote:null, winningCardIndex:null};
   },
   componentDidMount: function(){
     var self = this;
-    var DISPLAYDELAY = 500;
+    var DISPLAYDELAY = 30000;
     // var DISPLAYDELAY = 30;
     socket.on('announce', function(data){
       setTimeout(function() {
@@ -189,8 +191,9 @@ var PlayBoard = React.createClass({
       }, self.getNbPlayedCards() == 4 ? DISPLAYDELAY : 0);
     });
     socket.on('endTrick', function(data){
+      self.setState({winningCardIndex:data.index});
       setTimeout(function() {
-        self.setState({playedCards:[]});
+        self.setState({playedCards:[],winningCardIndex:null});
       }, DISPLAYDELAY);
     });
     socket.on('endJetee', function(data){
@@ -241,7 +244,7 @@ var PlayBoard = React.createClass({
   render: function(){
     var scores = this.props.inGame ? <Scores scores={this.state.scores}/>:null;
     var announceBoard = this.state.mustAnnounce ? <AnnounceBoard className='col-xs-6' currentAnnounce={this.state.currentAnnounce} handleAnnounce={this.handleAnnounce}/>:null;
-    var playedCardBoard = this.state.mustAnnounce ? null : <PlayedCardsBoard playedCards={this.state.playedCards}/>;
+    var playedCardBoard = this.state.mustAnnounce ? null : <PlayedCardsBoard playedCards={this.state.playedCards} winningIndex={this.state.winningCardIndex}/>;
     var leaveRoomButton = this.props.inRoom ? <button onClick={this.handleLeaveRoom} className='leaveRoom '>Leave Room</button> : null;
     var belote = this.state.belote;
     return(
@@ -307,9 +310,13 @@ var Scores = React.createClass({
 var PlayedCardsBoard = React.createClass({
   render: function(){
     var positions = ["bottom","left","top","right"];
+    var self=this;
+    if (this.props.winningCard != null)
+      console.log('ROOOOOOOOOOOOO');
+    console.log(this.props);
     var cards=this.props.playedCards.map(function(card,i) {
       return(
-        <Card key={i} card={card} className={"playedCard " + positions[i]}/>
+        <Card key={i} card={card} className={"playedCard " + positions[i]+ (self.props.winningIndex == i ? " winningCard" : "")}/>
       )
     });
     return(

@@ -244,13 +244,13 @@ function Game(io, namespace, attendee, players){
 				});
 				var winnerIndex = this.trickWinner().index;
 				log('DEBUG','Game ' + this.namespace + ': Player '+ this.players[winnerIndex] + ' won the trick');
+				this.emitEndTrick();
 				var teamIndex = this.getTeamNumber(winnerIndex);
 				this.current.player = winnerIndex;
 				this.collectCards(lastTrick,teamIndex);
 				//update scores
 				this.scores.round[teamIndex]+=parseInt(trickValue(lastTrick, this.current.announce.color, this.current.trickIndex == 7));
-
-				io.to(this.namespace).emit('endTrick', {});//todo: lastTrick:lastTrick
+				// io.to(this.namespace).emit('endTrick', {});//todo: lastTrick:lastTrick
 				this.current.trickIndex++;
 				//this.current.player = ...
 				this.current.trick = [];
@@ -533,6 +533,14 @@ function Game(io, namespace, attendee, players){
 			}
 			
 		},
+		emitEndTrick: function(){
+			for (i in this.players){
+				io.to(this.attendee[this.players[i]].global.socketid).emit('endTrick', {
+					index:(this.trickWinner().index - i + this.players.length)%this.players.length, 
+				});
+			}
+
+		},
 		cleanPlayerAnnounce: function(){
 			for (i in this.players){
 				this.attendee[this.players[i]].announce=null;
@@ -600,3 +608,4 @@ function trickValue (trick, trump, isLastTrick){
 	if (isLastTrick) res += 10;
 	return res;
 }
+

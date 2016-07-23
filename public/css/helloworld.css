@@ -121,6 +121,14 @@ body {
 /* ANNOUNCEBOARD*/
 .announceBoard{
 	text-align: center;
+	padding-top: 10%;
+}
+.announceBoard{
+	display: flex;
+	flex-direction: column;
+}
+.announceBoard ul {
+	flex:1;
 }
 .announceBoard ul li a {
 	
@@ -142,6 +150,9 @@ body {
 
 /*	max-width: 8%;
 	max-height: 12%;*/
+}
+.winningCard{
+	border: solid thick yellow;
 }
 .cardToBePlayed{
 	/*max-height: 100%;*/
