@@ -27,6 +27,7 @@ function Game(io, namespace, attendee, players){
 		scores:{round:[0,0],game:[0,0]},
 		// scores:[[0],[0]],
 		//team: null,
+		tricks: [],
 		current: {
 			state: "ANNOUNCING",
 			belote: null,
@@ -66,6 +67,9 @@ function Game(io, namespace, attendee, players){
 			});
 			//emit update scores
 			io.to(socketid).emit('updateScores', {scores:{round:[0,0],game:this.scoresFromViewOf(from).game}});
+			//emit lastTrick
+			if( this.current.trickIndex > 0)
+				io.to(socketid).emit('lastTrick', {lastTrick:this.trickFromViewOf(from, this.current.trickIndex - 1)});
 			// io.to(socketid).emit('updateScores', {scores:this.scoresFromViewOf(from)});
 			//emit if his turn to play
 			if (this.current.player == pIndex){
@@ -239,11 +243,14 @@ function Game(io, namespace, attendee, players){
 			this.playTrick(pName,card);
 			if (this.trickLength() == this.players.length){//end trick
 				var lastTrick = [];
-				this.current.trick.forEach(function(card){
-					lastTrick.push(card.toString());
+				this.current.trick.forEach(function(card,i){
+					// lastTrick.push(card.toString()); //too: check what needed
+					lastTrick[i]=card.toString();
 				});
 				var winnerIndex = this.trickWinner().index;
 				log('DEBUG','Game ' + this.namespace + ': Player '+ this.players[winnerIndex] + ' won the trick');
+				this.tricks.push(lastTrick);
+				console.log(lastTrick);
 				this.emitEndTrick();
 				var teamIndex = this.getTeamNumber(winnerIndex);
 				this.current.player = winnerIndex;
@@ -314,6 +321,7 @@ function Game(io, namespace, attendee, players){
 		nextRound: function(){
 			log('DEBUG','Game '+ this.namespace + ': nextRound');
 			this.scores.round = [0,0];
+			this.tricks = [];
 			this.current.belote = null;
 			this.current.announce = {value:0,color:null,coinched:false,player:-1};
 			this.current.trickIndex = 0;
@@ -512,6 +520,15 @@ function Game(io, namespace, attendee, players){
 			}
 			return view;
 		},
+		trickFromViewOf: function(pName, trickIndex){
+			var pIndex = this.players.indexOf(pName);
+			var trick = this.tricks[trickIndex];
+			var res = [];
+			for (i in trick){
+					res[i] = trick[(i-pIndex+this.players.length)%this.players.length]					
+			}
+			return res;
+		},
 		scoresFromViewOf: function(pName){
 			var teamIndex = this.getTeamNumber(this.players.indexOf(pName));
 			var scoresFromViewOfPlayer = { round:[this.scores.round[teamIndex],this.scores.round[(teamIndex + 1)%2]],
@@ -536,7 +553,8 @@ function Game(io, namespace, attendee, players){
 		emitEndTrick: function(){
 			for (i in this.players){
 				io.to(this.attendee[this.players[i]].global.socketid).emit('endTrick', {
-					index:(this.trickWinner().index - i + this.players.length)%this.players.length, 
+					index:(this.trickWinner().index - i + this.players.length)%this.players.length,
+					lastTrick: (this.current.trickIndex == 7 ? null : this.trickFromViewOf(this.players[i], this.current.trickIndex))
 				});
 			}
 

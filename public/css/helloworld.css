@@ -184,10 +184,10 @@ body {
 .playableCard{
 	border: thick solid red;
 }
-#playedCardsBoard{
+.playedCardsBoard{
 	/*position: relative;*/
 	/*height: 100%;*/
-	align
+	/*align*/
 	/*background-color: black;*/
 }
 .centerRow{

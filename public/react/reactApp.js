@@ -167,11 +167,12 @@ var PlayBoard = React.createClass({
   getInitialState: function(){
     return { mustAnnounce: false, currentAnnounce: null,myCards: [],myTurnToPlay: false, 
       playableCards:[], playedCards:[], scores:{round:[null,null],game:[0,0]}, 
-      belote:null, winningCardIndex:null};
+      belote:null, winningCardIndex:null, 
+      lastTrick:null,lastTrickWinner:null};
   },
   componentDidMount: function(){
     var self = this;
-    var DISPLAYDELAY = 30000;
+    var DISPLAYDELAY = 0;
     // var DISPLAYDELAY = 30;
     socket.on('announce', function(data){
       setTimeout(function() {
@@ -191,10 +192,16 @@ var PlayBoard = React.createClass({
       }, self.getNbPlayedCards() == 4 ? DISPLAYDELAY : 0);
     });
     socket.on('endTrick', function(data){
-      self.setState({winningCardIndex:data.index});
+      console.log(data);
+      self.setState({winningCardIndex:data.index, lastTrick:data.lastTrick, lastTrickWinner:data.index});
+      // alert(data.lastTrick);
       setTimeout(function() {
         self.setState({playedCards:[],winningCardIndex:null});
       }, DISPLAYDELAY);
+    });
+    socket.on('lastTrick', function(data){
+      // alert(data.lastTrick);
+      self.setState({lastTrick:data.lastTrick});//Todo lasttrickwinner
     });
     socket.on('endJetee', function(data){
       console.log('endJetee');
@@ -244,9 +251,10 @@ var PlayBoard = React.createClass({
   render: function(){
     var scores = this.props.inGame ? <Scores scores={this.state.scores}/>:null;
     var announceBoard = this.state.mustAnnounce ? <AnnounceBoard className='col-xs-6' currentAnnounce={this.state.currentAnnounce} handleAnnounce={this.handleAnnounce}/>:null;
-    var playedCardBoard = this.state.mustAnnounce ? null : <PlayedCardsBoard playedCards={this.state.playedCards} winningIndex={this.state.winningCardIndex}/>;
+    var playedCardBoard = this.state.mustAnnounce ? null : <PlayedCardsBoard playedCards={this.state.playedCards} winningIndex={this.state.winningCardIndex} className={"col-xs-6"}/>;
     var leaveRoomButton = this.props.inRoom ? <button onClick={this.handleLeaveRoom} className='leaveRoom '>Leave Room</button> : null;
     var belote = this.state.belote;
+    var lastTrick = this.state.lastTrick ? <PlayedCardsBoard playedCards={this.state.lastTrick} winningIndex={this.state.lastTrickWinner} className={"col-xs-2"}/> : null;
     return(
       <div className={'playBoard '}>
         <div className={'playBoardContainer'}>
@@ -273,7 +281,10 @@ var PlayBoard = React.createClass({
               <PlayerSpace myTurnToPlay={this.state.myTurnToPlay} inGame={this.props.inGame} place='SOUTH' playerIndex={0} player={this.props.players[0]} belote={belote?(belote.player==0?(belote.value):null):null}/>
             </div>
           </div>
-          <MySpace handlePlayCard={this.handlePlayCard} cards={this.state.myCards} playableCards={this.state.playableCards}/>
+          <div className='row' style={{flex:'2',display:'flex'}}>
+            <MySpace handlePlayCard={this.handlePlayCard} cards={this.state.myCards} playableCards={this.state.playableCards} className={'col-xs-10'}/>
+            {lastTrick}
+          </div>
         </div>
         {leaveRoomButton}
       </div>
@@ -320,7 +331,7 @@ var PlayedCardsBoard = React.createClass({
       )
     });
     return(
-        <div className={'col-xs-6'} id='playedCardsBoard'>
+        <div className={'playedCardsBoard ' + (this.props.className?this.props.className:'')}>
           {cards}
         </div>
     )
@@ -426,7 +437,7 @@ var MySpace = React.createClass({
       );
     });
     return (
-      <div className={'row mySpace'} style={{flex:'2'}}>
+      <div className={'mySpace ' + (this.props.className?this.props.className:"")} >
           {cards}
       </div>
     )
