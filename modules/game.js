@@ -65,7 +65,8 @@ function Game(io, namespace, attendee, players){
 					card:card.toString()});
 			});
 			//emit update scores
-			io.to(socketid).emit('updateScores', {scores:this.scoresFromViewOf(from)});
+			io.to(socketid).emit('updateScores', {scores:{round:[0,0],game:this.scoresFromViewOf(from).game}});
+			// io.to(socketid).emit('updateScores', {scores:this.scoresFromViewOf(from)});
 			//emit if his turn to play
 			if (this.current.player == pIndex){
 				if (this.current.state == 'ANNOUNCING'){
