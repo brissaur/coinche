@@ -169,7 +169,7 @@ var PlayBoard = React.createClass({
   },
   componentDidMount: function(){
     var self = this;
-    var DISPLAYDELAY = 5000;
+    var DISPLAYDELAY = 500;
     // var DISPLAYDELAY = 30;
     socket.on('announce', function(data){
       setTimeout(function() {
@@ -209,7 +209,7 @@ var PlayBoard = React.createClass({
       self.setState({belote:{player: data.index, value:(data.rebelote?'RE':'')+'BELOTE'}});
       setTimeout(function() {
         self.setState({belote:null});
-      }, DISPLAYDELAY*100); //TODO: change delay
+      }, DISPLAYDELAY); //TODO: change delay
     });
     socket.on('coinche', function(data){
       //TODO: AMAZING annimation for coinched
